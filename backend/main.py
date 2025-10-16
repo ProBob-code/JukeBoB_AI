@@ -376,7 +376,18 @@ async def play_next_track(session_id: str):
     
     return {"success": False, "message": "No more tracks"}
 
-app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles as BaseStaticFiles
+
+class StaticFilesNoCache(BaseStaticFiles):
+    async def get_response(self, path: str, scope):
+        response = await super().get_response(path, scope)
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+        return response
+
+app.mount("/", StaticFilesNoCache(directory="frontend", html=True), name="frontend")
 
 if __name__ == "__main__":
     import uvicorn
