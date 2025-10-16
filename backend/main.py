@@ -575,7 +575,23 @@ async def create_game_room(room: GameRoom):
         "board": [None] * 9,
         "current_turn": "X",
         "status": "waiting",
-        "created_at": datetime.now().isoformat()
+        "created_at": datetime.now().isoformat(),
+        # New fields for scoreboard and leaderboard
+        "scores": {"X": 0, "O": 0},
+        "games_played": 0,
+        "starting_player": "X",  # Track who starts each round
+        "leaderboard": {
+            room.player_name: {
+                "wins": 0,
+                "losses": 0,
+                "draws": 0,
+                "games": 0,
+                "streak": 0,
+                "max_streak": 0
+            }
+        },
+        "restart_requests": [],  # Track restart requests from players
+        "round_history": []  # Track history of each round
     }
     return {"room_code": room_code, "room": game_rooms[room_code]}
 
@@ -597,6 +613,17 @@ async def join_game_room(room_code: str, join_data: JoinGameRoom):
     
     room["player2"] = join_data.player_name
     room["status"] = "playing"
+    
+    # Initialize leaderboard for player2
+    if join_data.player_name not in room["leaderboard"]:
+        room["leaderboard"][join_data.player_name] = {
+            "wins": 0,
+            "losses": 0,
+            "draws": 0,
+            "games": 0,
+            "streak": 0,
+            "max_streak": 0
+        }
     
     await manager.broadcast({
         "type": "player_joined",
@@ -635,8 +662,53 @@ async def make_game_move(move: GameMove):
     if winner:
         room["status"] = "finished"
         room["winner"] = winner
+        
+        # Update scores
+        room["scores"][winner] += 1
+        room["games_played"] += 1
+        
+        # Update leaderboard
+        winner_name = room["player1"] if winner == "X" else room["player2"]
+        loser_name = room["player2"] if winner == "X" else room["player1"]
+        
+        if winner_name and winner_name in room["leaderboard"]:
+            room["leaderboard"][winner_name]["wins"] += 1
+            room["leaderboard"][winner_name]["games"] += 1
+            room["leaderboard"][winner_name]["streak"] += 1
+            if room["leaderboard"][winner_name]["streak"] > room["leaderboard"][winner_name]["max_streak"]:
+                room["leaderboard"][winner_name]["max_streak"] = room["leaderboard"][winner_name]["streak"]
+        
+        if loser_name and loser_name in room["leaderboard"]:
+            room["leaderboard"][loser_name]["losses"] += 1
+            room["leaderboard"][loser_name]["games"] += 1
+            room["leaderboard"][loser_name]["streak"] = 0
+        
+        # Record round history
+        room["round_history"].append({
+            "round": room["games_played"],
+            "winner": winner_name,
+            "moves": len([m for m in room["board"] if m is not None]),
+            "timestamp": datetime.now().isoformat()
+        })
+        
     elif all(cell is not None for cell in room["board"]):
         room["status"] = "draw"
+        room["games_played"] += 1
+        
+        # Update leaderboard for draws
+        for player_name in [room["player1"], room["player2"]]:
+            if player_name and player_name in room["leaderboard"]:
+                room["leaderboard"][player_name]["draws"] += 1
+                room["leaderboard"][player_name]["games"] += 1
+                room["leaderboard"][player_name]["streak"] = 0
+        
+        # Record round history
+        room["round_history"].append({
+            "round": room["games_played"],
+            "winner": "draw",
+            "moves": 9,
+            "timestamp": datetime.now().isoformat()
+        })
     
     await manager.broadcast({
         "type": "game_move",
@@ -671,6 +743,64 @@ async def send_emoji_reaction(reaction: EmojiReaction):
     }, reaction.room_code)
     
     return {"success": True}
+
+class RestartRequest(BaseModel):
+    room_code: str
+    player_name: str
+    
+@app.post("/api/games/restart")
+async def restart_game(restart: RestartRequest):
+    if restart.room_code not in game_rooms:
+        raise HTTPException(status_code=404, detail="Room not found")
+    
+    room = game_rooms[restart.room_code]
+    
+    # Check if player is in the room
+    if restart.player_name not in [room["player1"], room["player2"]]:
+        raise HTTPException(status_code=400, detail="Player not in room")
+    
+    # Add player's restart request if not already present
+    if restart.player_name not in room["restart_requests"]:
+        room["restart_requests"].append(restart.player_name)
+    
+    # Check if both players requested restart
+    both_players_requested = len(room["restart_requests"]) >= 2
+    is_host = restart.player_name == room["player1"]
+    
+    # Restart if both players agreed or if host requests (host can force restart)
+    if both_players_requested or is_host:
+        # Clear the board
+        room["board"] = [None] * 9
+        
+        # Alternate starting player
+        room["starting_player"] = "O" if room["starting_player"] == "X" else "X"
+        room["current_turn"] = room["starting_player"]
+        
+        # Reset game status
+        room["status"] = "playing"
+        if "winner" in room:
+            del room["winner"]
+        
+        # Clear restart requests
+        room["restart_requests"] = []
+        
+        # Broadcast game restart
+        await manager.broadcast({
+            "type": "game_restarted",
+            "room": room,
+            "starting_player": room["starting_player"]
+        }, restart.room_code)
+        
+        return {"success": True, "restarted": True, "room": room}
+    else:
+        # Notify that restart is pending
+        await manager.broadcast({
+            "type": "restart_requested",
+            "requesting_player": restart.player_name,
+            "restart_requests": room["restart_requests"]
+        }, restart.room_code)
+        
+        return {"success": True, "restarted": False, "pending": True}
 
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles as BaseStaticFiles

@@ -218,8 +218,87 @@
                         <p>Room Code: <strong id="ttt-room-code"></strong></p>
                         <p id="ttt-turn-info"></p>
                     </div>
-                    <div id="tictactoe-board" class="ttt-board"></div>
+                    
+                    <!-- Scoreboard -->
+                    <div id="scoreboard" class="scoreboard">
+                        <div class="score-display">
+                            <div class="player-score player-x">
+                                <h3 id="player1-name">Player X</h3>
+                                <div class="score-value" id="score-x">0</div>
+                            </div>
+                            <div class="score-divider">
+                                <span>VS</span>
+                                <div class="games-played">Round <span id="round-number">0</span></div>
+                            </div>
+                            <div class="player-score player-o">
+                                <h3 id="player2-name">Player O</h3>
+                                <div class="score-value" id="score-o">0</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="game-container">
+                        <div id="tictactoe-board" class="ttt-board"></div>
+                        
+                        <!-- Leaderboard Panel -->
+                        <div id="leaderboard" class="leaderboard-panel">
+                            <h3>📊 Leaderboard</h3>
+                            <div id="leaderboard-content">
+                                <div class="leaderboard-player" id="lb-player1">
+                                    <h4 class="lb-name">-</h4>
+                                    <div class="lb-stats">
+                                        <div class="stat-item">
+                                            <span class="stat-label">Wins:</span>
+                                            <span class="stat-value" id="lb-p1-wins">0</span>
+                                        </div>
+                                        <div class="stat-item">
+                                            <span class="stat-label">Games:</span>
+                                            <span class="stat-value" id="lb-p1-games">0</span>
+                                        </div>
+                                        <div class="stat-item">
+                                            <span class="stat-label">Win %:</span>
+                                            <span class="stat-value" id="lb-p1-percent">0%</span>
+                                        </div>
+                                        <div class="stat-item">
+                                            <span class="stat-label">Streak:</span>
+                                            <span class="stat-value streak" id="lb-p1-streak">0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="leaderboard-player" id="lb-player2">
+                                    <h4 class="lb-name">-</h4>
+                                    <div class="lb-stats">
+                                        <div class="stat-item">
+                                            <span class="stat-label">Wins:</span>
+                                            <span class="stat-value" id="lb-p2-wins">0</span>
+                                        </div>
+                                        <div class="stat-item">
+                                            <span class="stat-label">Games:</span>
+                                            <span class="stat-value" id="lb-p2-games">0</span>
+                                        </div>
+                                        <div class="stat-item">
+                                            <span class="stat-label">Win %:</span>
+                                            <span class="stat-value" id="lb-p2-percent">0%</span>
+                                        </div>
+                                        <div class="stat-item">
+                                            <span class="stat-label">Streak:</span>
+                                            <span class="stat-value streak" id="lb-p2-streak">0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <p id="ttt-result"></p>
+                    
+                    <!-- Play Again Button (shown after game ends) -->
+                    <div id="restart-container" class="restart-container" style="display: none;">
+                        <button id="restart-btn" class="btn btn-restart" onclick="requestRestart()">
+                            🔄 Play Again
+                        </button>
+                        <p id="restart-status" class="restart-status"></p>
+                    </div>
                     
                     <!-- Emoji Reaction Panel -->
                     <div id="emoji-panel" class="emoji-panel">

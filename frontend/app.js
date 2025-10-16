@@ -150,8 +150,57 @@ function handleWebSocketMessage(data) {
             if (currentGame && data.room) {
                 currentGame.board = data.room.board;
                 currentGame.currentTurn = data.room.current_turn;
+                currentGame.scores = data.room.scores;
+                currentGame.games_played = data.room.games_played;
+                currentGame.leaderboard = data.room.leaderboard;
                 renderTicTacToe();
+                updateScoreboard(data.room);
+                updateLeaderboard(data.room);
                 checkGameEnd();
+            }
+            break;
+        case 'game_restarted':
+            if (currentGame && data.room) {
+                currentGame.board = data.room.board;
+                currentGame.currentTurn = data.room.current_turn;
+                currentGame.scores = data.room.scores;
+                currentGame.games_played = data.room.games_played;
+                currentGame.leaderboard = data.room.leaderboard;
+                
+                // Update starting player if it changed
+                if (data.starting_player) {
+                    currentGame.startingPlayer = data.starting_player;
+                    // Swap player symbols if needed
+                    if (data.starting_player === 'O' && currentGame.yourSymbol === 'X' && currentGame.player1 === currentGame.playerName) {
+                        currentGame.yourSymbol = 'O';
+                    } else if (data.starting_player === 'X' && currentGame.yourSymbol === 'O' && currentGame.player1 === currentGame.playerName) {
+                        currentGame.yourSymbol = 'X';
+                    }
+                }
+                
+                renderTicTacToe();
+                updateScoreboard(data.room);
+                updateLeaderboard(data.room);
+                
+                // Hide restart button and clear result
+                document.getElementById('restart-container').style.display = 'none';
+                document.getElementById('ttt-result').textContent = '';
+                document.getElementById('restart-status').textContent = '';
+            }
+            break;
+        case 'restart_requested':
+            if (currentGame) {
+                const status = document.getElementById('restart-status');
+                if (status) {
+                    status.textContent = `${data.requesting_player} wants to play again...`;
+                }
+            }
+            break;
+        case 'player_joined':
+            if (currentGame && data.room) {
+                currentGame.player2 = data.room.player2;
+                updateScoreboard(data.room);
+                updateLeaderboard(data.room);
             }
             break;
         case 'emoji_reaction':
@@ -545,7 +594,10 @@ async function createGameRoom(event) {
             board: Array(9).fill(null),
             currentTurn: 'X',
             yourSymbol: 'X',
-            playerName: hostName
+            playerName: hostName,
+            scores: data.room.scores || {'X': 0, 'O': 0},
+            games_played: data.room.games_played || 0,
+            leaderboard: data.room.leaderboard || {}
         };
         
         // Connect WebSocket for real-time updates
@@ -553,6 +605,8 @@ async function createGameRoom(event) {
         
         document.getElementById('ttt-room-code').textContent = data.room_code;
         renderTicTacToe();
+        updateScoreboard(data.room);
+        updateLeaderboard(data.room);
         showGamesScreen('tictactoe-game');
     } catch (error) {
         alert('Error creating game room: ' + error.message);
@@ -591,7 +645,10 @@ async function joinGameRoom(event) {
             board: data.room.board,
             currentTurn: data.room.current_turn,
             yourSymbol: 'O',
-            playerName: playerName
+            playerName: playerName,
+            scores: data.room.scores || {'X': 0, 'O': 0},
+            games_played: data.room.games_played || 0,
+            leaderboard: data.room.leaderboard || {}
         };
         
         // Connect WebSocket for real-time updates
@@ -599,6 +656,8 @@ async function joinGameRoom(event) {
         
         document.getElementById('ttt-room-code').textContent = gameCode;
         renderTicTacToe();
+        updateScoreboard(data.room);
+        updateLeaderboard(data.room);
         showGamesScreen('tictactoe-game');
     } catch (error) {
         alert('Error joining game: ' + error.message);
@@ -813,8 +872,136 @@ function checkGameEnd() {
     if (winner) {
         document.getElementById('ttt-result').textContent = 
             winner === currentGame.yourSymbol ? 'You Won! 🎉' : 'You Lost!';
+        document.getElementById('restart-container').style.display = 'block';
+        animateScoreChange(winner);
     } else if (currentGame.board.every(cell => cell)) {
         document.getElementById('ttt-result').textContent = "It's a Draw!";
+        document.getElementById('restart-container').style.display = 'block';
+    }
+}
+
+// New functions for scoreboard and leaderboard
+function updateScoreboard(room) {
+    if (!room) return;
+    
+    // Update player names
+    const player1Name = document.getElementById('player1-name');
+    const player2Name = document.getElementById('player2-name');
+    if (player1Name) player1Name.textContent = room.player1 || 'Player X';
+    if (player2Name) player2Name.textContent = room.player2 || 'Waiting...';
+    
+    // Update scores
+    const scoreX = document.getElementById('score-x');
+    const scoreO = document.getElementById('score-o');
+    if (scoreX && room.scores) scoreX.textContent = room.scores.X || 0;
+    if (scoreO && room.scores) scoreO.textContent = room.scores.O || 0;
+    
+    // Update round number
+    const roundNumber = document.getElementById('round-number');
+    if (roundNumber) roundNumber.textContent = room.games_played || 0;
+}
+
+function updateLeaderboard(room) {
+    if (!room || !room.leaderboard) return;
+    
+    // Update player 1 leaderboard
+    const player1Data = room.leaderboard[room.player1];
+    if (player1Data) {
+        const lb1Name = document.querySelector('#lb-player1 .lb-name');
+        if (lb1Name) lb1Name.textContent = room.player1;
+        
+        document.getElementById('lb-p1-wins').textContent = player1Data.wins || 0;
+        document.getElementById('lb-p1-games').textContent = player1Data.games || 0;
+        
+        const winPercent = player1Data.games > 0 
+            ? Math.round((player1Data.wins / player1Data.games) * 100) 
+            : 0;
+        document.getElementById('lb-p1-percent').textContent = winPercent + '%';
+        
+        const streakEl = document.getElementById('lb-p1-streak');
+        if (streakEl) {
+            streakEl.textContent = player1Data.streak || 0;
+            if (player1Data.streak > 0) {
+                streakEl.classList.add('streak-active');
+            } else {
+                streakEl.classList.remove('streak-active');
+            }
+        }
+    }
+    
+    // Update player 2 leaderboard
+    if (room.player2) {
+        const player2Data = room.leaderboard[room.player2];
+        if (player2Data) {
+            const lb2Name = document.querySelector('#lb-player2 .lb-name');
+            if (lb2Name) lb2Name.textContent = room.player2;
+            
+            document.getElementById('lb-p2-wins').textContent = player2Data.wins || 0;
+            document.getElementById('lb-p2-games').textContent = player2Data.games || 0;
+            
+            const winPercent = player2Data.games > 0 
+                ? Math.round((player2Data.wins / player2Data.games) * 100) 
+                : 0;
+            document.getElementById('lb-p2-percent').textContent = winPercent + '%';
+            
+            const streakEl = document.getElementById('lb-p2-streak');
+            if (streakEl) {
+                streakEl.textContent = player2Data.streak || 0;
+                if (player2Data.streak > 0) {
+                    streakEl.classList.add('streak-active');
+                } else {
+                    streakEl.classList.remove('streak-active');
+                }
+            }
+        }
+    }
+}
+
+async function requestRestart() {
+    if (!currentGame || !currentGame.code) {
+        alert('No active game');
+        return;
+    }
+    
+    const playerName = currentGame.playerName || currentUser?.name || localStorage.getItem('playerName');
+    if (!playerName) {
+        alert('Player name not found');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/games/restart', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                room_code: currentGame.code,
+                player_name: playerName
+            })
+        });
+        
+        if (!response.ok) throw new Error('Failed to restart game');
+        
+        const data = await response.json();
+        if (data.restarted) {
+            document.getElementById('restart-status').textContent = 'Game restarted!';
+        } else if (data.pending) {
+            document.getElementById('restart-status').textContent = 'Waiting for other player...';
+        }
+    } catch (error) {
+        alert('Error restarting game: ' + error.message);
+    }
+}
+
+function animateScoreChange(winner) {
+    const scoreEl = winner === 'X' 
+        ? document.getElementById('score-x') 
+        : document.getElementById('score-o');
+    
+    if (scoreEl) {
+        scoreEl.classList.add('score-change');
+        setTimeout(() => {
+            scoreEl.classList.remove('score-change');
+        }, 1000);
     }
 }
 
