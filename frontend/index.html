@@ -3,111 +3,254 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jukebox AI - Party Music Platform</title>
+    <title>JuleBox - Entertainment Platform</title>
     <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
     <div id="app">
-        <div id="home-screen" class="screen active">
+        <!-- Main Home Screen -->
+        <div id="main-home" class="screen active">
             <div class="container">
-                <h1>🎵 Jukebox AI</h1>
-                <p class="tagline">Let the crowd choose, the artist groove, and the AI mix the mood.</p>
+                <h1>🎵 JuleBox</h1>
+                <p class="tagline">Your Ultimate Party Entertainment Hub</p>
                 
-                <div class="button-group">
-                    <button class="btn btn-primary" onclick="showScreen('create-screen')">
-                        🎤 Create Party Session
-                    </button>
-                    <button class="btn btn-secondary" onclick="showScreen('join-screen')">
-                        🎉 Join Party
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div id="create-screen" class="screen">
-            <div class="container">
-                <button class="btn-back" onclick="showScreen('home-screen')">← Back</button>
-                <h2>Create Party Session</h2>
-                <form onsubmit="createSession(event)">
-                    <input type="text" id="party-name" placeholder="Party Name" required>
-                    <input type="text" id="artist-name" placeholder="Artist/DJ Name" required>
-                    <button type="submit" class="btn btn-primary">Create Session</button>
-                </form>
-            </div>
-        </div>
-
-        <div id="join-screen" class="screen">
-            <div class="container">
-                <button class="btn-back" onclick="showScreen('home-screen')">← Back</button>
-                <h2>Join Party</h2>
-                <form onsubmit="joinSession(event)">
-                    <input type="text" id="session-code" placeholder="Enter Session Code" required>
-                    <input type="text" id="guest-name" placeholder="Your Name" required>
-                    <button type="submit" class="btn btn-primary">Join</button>
-                </form>
-            </div>
-        </div>
-
-        <div id="artist-screen" class="screen">
-            <div class="container">
-                <button class="btn-back" onclick="endSession()">← End Session</button>
-                <h2 id="artist-party-name">Party Dashboard</h2>
-                <div class="session-info">
-                    <div class="qr-container">
-                        <img id="qr-code" src="" alt="QR Code">
-                        <p>Session Code: <strong id="session-code-display"></strong></p>
+                <div class="section-cards">
+                    <div class="section-card jukebox-card" onclick="showSection('jukebox')">
+                        <div class="card-icon">🎵</div>
+                        <h3>Jukebox</h3>
+                        <p>Crowd-controlled music requests, voting & tipping</p>
+                    </div>
+                    
+                    <div class="section-card games-card" onclick="showSection('games')">
+                        <div class="card-icon">🎮</div>
+                        <h3>Games</h3>
+                        <p>Play Tic Tac Toe, Mafia & more</p>
+                    </div>
+                    
+                    <div class="section-card aidj-card" onclick="showSection('ai-dj')">
+                        <div class="card-icon">🎧</div>
+                        <h3>AI DJ</h3>
+                        <p>Smart mixing with dual turntables</p>
                     </div>
                 </div>
-
-                <div class="stats">
-                    <div class="stat-card">
-                        <h3 id="total-requests">0</h3>
-                        <p>Total Requests</p>
-                    </div>
-                    <div class="stat-card">
-                        <h3 id="total-tips">$0</h3>
-                        <p>Total Tips</p>
-                    </div>
-                </div>
-
-                <div class="requests-section">
-                    <h3>Song Queue</h3>
-                    <div id="artist-queue"></div>
-                </div>
             </div>
         </div>
 
-        <div id="party-screen" class="screen">
+        <!-- JUKEBOX SECTION -->
+        <div id="jukebox-section" class="screen jukebox-theme">
             <div class="container">
-                <button class="btn-back" onclick="leaveParty()">← Leave Party</button>
-                <h2 id="party-name-display">Party Name</h2>
+                <button class="btn-back" onclick="backToHome()">← Back to Home</button>
                 
-                <button class="btn btn-primary" onclick="showRequestForm()">
-                    🎵 Request a Song
-                </button>
-
-                <div id="voting-banner" class="voting-banner" style="display: none;">
-                    <h3>🗳️ Voting in Progress</h3>
-                    <p>Time remaining: <span id="voting-timer">60s</span></p>
+                <div id="jukebox-home" class="sub-screen active">
+                    <h1>🎵 Jukebox</h1>
+                    <p class="tagline">Let the crowd choose the vibe</p>
+                    
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="showJukeboxScreen('create-jukebox')">
+                            🎤 Host a Jukebox
+                        </button>
+                        <button class="btn btn-secondary" onclick="showJukeboxScreen('join-jukebox')">
+                            🎉 Join Jukebox
+                        </button>
+                    </div>
                 </div>
 
-                <div class="requests-section">
-                    <h3>Song Requests</h3>
-                    <div id="party-requests"></div>
+                <div id="create-jukebox" class="sub-screen">
+                    <button class="btn-back" onclick="showJukeboxScreen('jukebox-home')">← Back</button>
+                    <h2>Host a Jukebox</h2>
+                    <form onsubmit="createJukebox(event)">
+                        <input type="text" id="jukebox-name" placeholder="Party Name" required>
+                        <input type="text" id="host-name" placeholder="Host Name" required>
+                        <button type="submit" class="btn btn-primary">Create Jukebox</button>
+                    </form>
+                </div>
+
+                <div id="join-jukebox" class="sub-screen">
+                    <button class="btn-back" onclick="showJukeboxScreen('jukebox-home')">← Back</button>
+                    <h2>Join Jukebox</h2>
+                    <form onsubmit="joinJukebox(event)">
+                        <input type="text" id="jukebox-code" placeholder="Enter Code" required>
+                        <input type="text" id="guest-name-jukebox" placeholder="Your Name" required>
+                        <button type="submit" class="btn btn-primary">Join</button>
+                    </form>
+                </div>
+
+                <div id="host-dashboard" class="sub-screen">
+                    <button class="btn-back" onclick="endJukebox()">← End Session</button>
+                    <h2 id="host-jukebox-name">Jukebox Dashboard</h2>
+                    <div class="session-info">
+                        <div class="qr-container">
+                            <img id="jukebox-qr" src="" alt="QR Code">
+                            <p>Code: <strong id="jukebox-code-display"></strong></p>
+                        </div>
+                    </div>
+
+                    <div class="stats">
+                        <div class="stat-card">
+                            <h3 id="queue-count">0</h3>
+                            <p>In Queue</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3 id="played-count">0</h3>
+                            <p>Played</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3 id="host-tips">$0</h3>
+                            <p>Total Tips</p>
+                        </div>
+                    </div>
+
+                    <div class="jukebox-sections">
+                        <div class="jukebox-queue">
+                            <h3>Queue (Max 10)</h3>
+                            <div id="host-queue"></div>
+                        </div>
+                        <div class="jukebox-played">
+                            <h3>Recently Played</h3>
+                            <div id="host-played"></div>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-checkout" onclick="showCheckout()">💰 Checkout Tips</button>
+                </div>
+
+                <div id="guest-jukebox" class="sub-screen">
+                    <button class="btn-back" onclick="leaveJukebox()">← Leave</button>
+                    <h2 id="guest-jukebox-name">Jukebox</h2>
+                    
+                    <button class="btn btn-primary" onclick="showRequestForm()">
+                        🎵 Request Song
+                    </button>
+
+                    <div class="jukebox-sections">
+                        <div class="jukebox-queue">
+                            <h3>Up Next</h3>
+                            <div id="guest-queue"></div>
+                        </div>
+                        <div class="jukebox-played">
+                            <h3>Recently Played</h3>
+                            <div id="guest-played"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
+        <!-- GAMES SECTION -->
+        <div id="games-section" class="screen games-theme">
+            <div class="container">
+                <button class="btn-back" onclick="backToHome()">← Back to Home</button>
+                
+                <div id="games-home" class="sub-screen active">
+                    <h1>🎮 Game Hub</h1>
+                    <p class="tagline">Play and compete with friends</p>
+                    
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="showGamesScreen('create-game')">
+                            🎯 Create Game Room
+                        </button>
+                        <button class="btn btn-secondary" onclick="showGamesScreen('join-game')">
+                            🎲 Join Game
+                        </button>
+                    </div>
+                </div>
+
+                <div id="create-game" class="sub-screen">
+                    <button class="btn-back" onclick="showGamesScreen('games-home')">← Back</button>
+                    <h2>Create Game Room</h2>
+                    <form onsubmit="createGameRoom(event)">
+                        <select id="game-type" required>
+                            <option value="">Select Game</option>
+                            <option value="tictactoe">Tic Tac Toe</option>
+                            <option value="mafia" disabled>Mafia (Coming Soon)</option>
+                        </select>
+                        <input type="text" id="game-host-name" placeholder="Your Name" required>
+                        <button type="submit" class="btn btn-primary">Create Room</button>
+                    </form>
+                </div>
+
+                <div id="join-game" class="sub-screen">
+                    <button class="btn-back" onclick="showGamesScreen('games-home')">← Back</button>
+                    <h2>Join Game</h2>
+                    <form onsubmit="joinGameRoom(event)">
+                        <input type="text" id="game-code" placeholder="Enter Game Code" required>
+                        <input type="text" id="game-player-name" placeholder="Your Name" required>
+                        <button type="submit" class="btn btn-primary">Join</button>
+                    </form>
+                </div>
+
+                <div id="tictactoe-game" class="sub-screen">
+                    <button class="btn-back" onclick="leaveGame()">← Leave Game</button>
+                    <h2>Tic Tac Toe</h2>
+                    <div class="game-info">
+                        <p>Room Code: <strong id="ttt-room-code"></strong></p>
+                        <p id="ttt-turn-info"></p>
+                    </div>
+                    <div id="tictactoe-board" class="ttt-board"></div>
+                    <p id="ttt-result"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI DJ SECTION -->
+        <div id="aidj-section" class="screen aidj-theme">
+            <div class="container">
+                <button class="btn-back" onclick="backToHome()">← Back to Home</button>
+                
+                <h1>🎧 AI DJ Studio</h1>
+                <p class="tagline">Smart mixing with AI-powered transitions</p>
+                
+                <div class="turntables">
+                    <div class="turntable">
+                        <h3>Deck A</h3>
+                        <div class="track-upload">
+                            <input type="file" id="deck-a-file" accept="audio/*" onchange="loadTrack('a', this)">
+                            <label for="deck-a-file">Upload Track</label>
+                        </div>
+                        <div id="deck-a-info" class="track-info"></div>
+                        <audio id="deck-a-player" controls></audio>
+                    </div>
+                    
+                    <div class="crossfader">
+                        <label>AI Crossfader</label>
+                        <input type="range" id="crossfader" min="0" max="100" value="50">
+                        <button class="btn btn-primary" onclick="aiAutoMix()">🤖 Auto Mix</button>
+                    </div>
+                    
+                    <div class="turntable">
+                        <h3>Deck B</h3>
+                        <div class="track-upload">
+                            <input type="file" id="deck-b-file" accept="audio/*" onchange="loadTrack('b', this)">
+                            <label for="deck-b-file">Upload Track</label>
+                        </div>
+                        <div id="deck-b-info" class="track-info"></div>
+                        <audio id="deck-b-player" controls></audio>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Request Modal -->
         <div id="request-modal" class="modal">
-            <div class="modal-content">
+            <div class="modal-content jukebox-modal">
                 <span class="close" onclick="closeRequestForm()">&times;</span>
                 <h2>Request a Song</h2>
-                <form onsubmit="submitRequest(event)">
+                <form onsubmit="submitSongRequest(event)">
                     <input type="text" id="song-name" placeholder="Song Name" required>
                     <input type="text" id="song-artist" placeholder="Artist" required>
-                    <input type="number" id="tip-amount" placeholder="Tip Amount ($)" min="0" step="0.01" value="0">
+                    <input type="number" id="tip-amount" placeholder="Tip Amount ($)" min="1" step="0.01" required>
+                    <p class="tip-note">💡 Higher tips = Higher priority in queue!</p>
                     <button type="submit" class="btn btn-primary">Submit Request</button>
                 </form>
+            </div>
+        </div>
+
+        <!-- Checkout Modal -->
+        <div id="checkout-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeCheckout()">&times;</span>
+                <h2>Checkout Tips</h2>
+                <div id="checkout-info"></div>
             </div>
         </div>
     </div>
