@@ -300,17 +300,95 @@ function closeRequestForm() {
 
 function showCheckout() {
     document.getElementById('checkout-modal').classList.add('active');
+    const totalTips = parseFloat(document.getElementById('host-tips').textContent) || 0;
+    const appFee = totalTips * 0.05;
+    const netEarnings = totalTips * 0.95;
+    
     // Show checkout info
     document.getElementById('checkout-info').innerHTML = `
-        <p>Total Tips Collected: <strong>$${document.getElementById('host-tips').textContent}</strong></p>
-        <p>App Fee (5%): <strong>$${(parseFloat(document.getElementById('host-tips').textContent.replace('$', '')) * 0.05).toFixed(2)}</strong></p>
-        <p>Your Earnings: <strong>$${(parseFloat(document.getElementById('host-tips').textContent.replace('$', '')) * 0.95).toFixed(2)}</strong></p>
-        <button class="btn btn-primary" onclick="alert('UPI/GPay integration coming soon!')">Transfer to Wallet</button>
+        <p>Total Tips Collected: <strong>₹${totalTips.toFixed(2)}</strong></p>
+        <p>App Fee (5%): <strong>₹${appFee.toFixed(2)}</strong></p>
+        <p>Your Earnings: <strong>₹${netEarnings.toFixed(2)}</strong></p>
+        
+        <div class="payment-methods" style="margin: 20px 0;">
+            <h4>Select Payment Method:</h4>
+            <button class="btn btn-primary" onclick="processPayment('upi')" style="margin: 5px;">
+                <i class="fas fa-rupee-sign"></i> UPI Payment
+            </button>
+            <button class="btn btn-primary" onclick="processPayment('gpay')" style="margin: 5px;">
+                <i class="fab fa-google"></i> Google Pay
+            </button>
+        </div>
+        
+        <div id="payment-status" style="display: none; margin-top: 20px;">
+            <div class="loader"></div>
+            <p>Processing payment...</p>
+        </div>
+        
+        <div id="payment-result" style="display: none; margin-top: 20px;"></div>
     `;
 }
 
 function closeCheckout() {
     document.getElementById('checkout-modal').classList.remove('active');
+}
+
+async function processPayment(method) {
+    const statusDiv = document.getElementById('payment-status');
+    const resultDiv = document.getElementById('payment-result');
+    
+    statusDiv.style.display = 'block';
+    resultDiv.style.display = 'none';
+    
+    try {
+        const response = await fetch('/api/checkout/process', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                session_id: currentSession.session_id,
+                payment_method: method,
+                upi_id: method === 'upi' ? 'artist@upi' : null
+            })
+        });
+        
+        const result = await response.json();
+        
+        statusDiv.style.display = 'none';
+        resultDiv.style.display = 'block';
+        
+        if (result.success) {
+            resultDiv.innerHTML = `
+                <div class="success-message" style="color: #4caf50;">
+                    <i class="fas fa-check-circle"></i>
+                    <h3>Payment Successful!</h3>
+                    <p>Transaction ID: ${result.transaction_id}</p>
+                    <p>Amount Received: ₹${result.net_amount.toFixed(2)}</p>
+                    <p>App Fee: ₹${result.app_fee.toFixed(2)}</p>
+                    <button class="btn btn-success" onclick="closeCheckout()">Done</button>
+                </div>
+            `;
+            // Update host tips display
+            document.getElementById('host-tips').textContent = '0.00';
+        } else {
+            resultDiv.innerHTML = `
+                <div class="error-message" style="color: #f44336;">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <p>${result.message || 'Payment failed. Please try again.'}</p>
+                    <button class="btn btn-secondary" onclick="closeCheckout()">Close</button>
+                </div>
+            `;
+        }
+    } catch (error) {
+        statusDiv.style.display = 'none';
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = `
+            <div class="error-message" style="color: #f44336;">
+                <i class="fas fa-exclamation-circle"></i>
+                <p>Network error. Please try again.</p>
+                <button class="btn btn-secondary" onclick="closeCheckout()">Close</button>
+            </div>
+        `;
+    }
 }
 
 function endJukebox() {

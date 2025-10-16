@@ -61,6 +61,8 @@ voting_sessions = {}
 user_wallets = {}
 ai_dj_agents = {}
 game_rooms = {}
+payment_transactions = {}
+app_revenue = {"total": 0.0, "transactions": []}
 
 class PartySession(BaseModel):
     name: str
@@ -90,6 +92,11 @@ class GameMove(BaseModel):
     room_code: str
     player_name: str
     move: int
+
+class PaymentCheckout(BaseModel):
+    session_id: str
+    payment_method: str  # "upi" or "gpay"
+    upi_id: Optional[str] = None
 
 @app.post("/api/sessions/create")
 async def create_session(session: PartySession):
@@ -356,6 +363,81 @@ async def get_wallet(user_id: str):
     if user_id not in user_wallets:
         user_wallets[user_id] = {"balance": 100.0, "transactions": []}
     return user_wallets[user_id]
+
+@app.post("/api/checkout/process")
+async def process_checkout(checkout: PaymentCheckout):
+    """Process UPI/GPay checkout with 5% app fee"""
+    if checkout.session_id not in party_sessions:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    session = party_sessions[checkout.session_id]
+    artist_earnings = session.get("artist_earnings", 0)
+    
+    if artist_earnings <= 0:
+        return {"success": False, "message": "No earnings to checkout"}
+    
+    # Calculate 5% app fee
+    app_fee = artist_earnings * 0.05
+    net_amount = artist_earnings - app_fee
+    
+    # Create payment transaction
+    transaction_id = str(uuid.uuid4())[:8].upper()
+    payment_transactions[transaction_id] = {
+        "id": transaction_id,
+        "session_id": checkout.session_id,
+        "gross_amount": artist_earnings,
+        "app_fee": app_fee,
+        "net_amount": net_amount,
+        "payment_method": checkout.payment_method,
+        "upi_id": checkout.upi_id,
+        "status": "processing",
+        "created_at": datetime.now().isoformat()
+    }
+    
+    # Simulate payment processing (in production, this would call UPI gateway API)
+    await asyncio.sleep(2)  # Simulate processing delay
+    
+    # Mark transaction as completed
+    payment_transactions[transaction_id]["status"] = "completed"
+    
+    # Record app revenue
+    app_revenue["total"] += app_fee
+    app_revenue["transactions"].append({
+        "transaction_id": transaction_id,
+        "fee": app_fee,
+        "timestamp": datetime.now().isoformat()
+    })
+    
+    # Clear artist earnings after successful checkout
+    session["artist_earnings"] = 0
+    
+    # Broadcast payment success
+    await manager.broadcast({
+        "type": "payment_processed",
+        "transaction": payment_transactions[transaction_id]
+    }, checkout.session_id)
+    
+    return {
+        "success": True,
+        "transaction_id": transaction_id,
+        "gross_amount": artist_earnings,
+        "app_fee": app_fee,
+        "net_amount": net_amount,
+        "payment_method": checkout.payment_method,
+        "message": f"Payment of ₹{net_amount:.2f} processed successfully"
+    }
+
+@app.get("/api/transactions/{transaction_id}")
+async def get_transaction(transaction_id: str):
+    """Get transaction details"""
+    if transaction_id not in payment_transactions:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    return payment_transactions[transaction_id]
+
+@app.get("/api/app/revenue")
+async def get_app_revenue():
+    """Get app revenue statistics"""
+    return app_revenue
 
 @app.post("/api/dj/{session_id}/enable")
 async def enable_ai_dj(session_id: str):
