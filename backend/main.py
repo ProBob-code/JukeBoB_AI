@@ -60,6 +60,7 @@ song_requests = {}
 voting_sessions = {}
 user_wallets = {}
 ai_dj_agents = {}
+game_rooms = {}
 
 class PartySession(BaseModel):
     name: str
@@ -80,6 +81,15 @@ class TipRequest(BaseModel):
     session_id: str
     request_id: str
     amount: float
+
+class GameRoom(BaseModel):
+    game_type: str
+    player_name: str
+
+class GameMove(BaseModel):
+    room_code: str
+    player_name: str
+    move: int
 
 @app.post("/api/sessions/create")
 async def create_session(session: PartySession):
@@ -316,7 +326,20 @@ async def skip_request(request_id: str, session_id: str):
 async def get_requests(session_id: str):
     if session_id not in song_requests:
         return []
-    return song_requests[session_id]
+    
+    # Sort queued requests by tip amount (priority)
+    requests = song_requests[session_id]
+    queued = sorted([r for r in requests if r["status"] == "queued"], 
+                    key=lambda x: x.get("tip_amount", 0), reverse=True)
+    other = [r for r in requests if r["status"] != "queued"]
+    
+    # Limit queue to 10 items, move excess to pending
+    if len(queued) > 10:
+        for req in queued[10:]:
+            req["status"] = "pending"
+        queued = queued[:10]
+    
+    return queued + other
 
 @app.websocket("/ws/{session_id}")
 async def websocket_endpoint(websocket: WebSocket, session_id: str):
@@ -375,6 +398,93 @@ async def play_next_track(session_id: str):
         return {"success": True, "track": next_track}
     
     return {"success": False, "message": "No more tracks"}
+
+@app.post("/api/games/create")
+async def create_game_room(room: GameRoom):
+    room_code = str(uuid.uuid4())[:6].upper()
+    game_rooms[room_code] = {
+        "code": room_code,
+        "type": room.game_type,
+        "player1": room.player_name,
+        "player2": None,
+        "board": [None] * 9,
+        "current_turn": "X",
+        "status": "waiting",
+        "created_at": datetime.now().isoformat()
+    }
+    return {"room_code": room_code, "room": game_rooms[room_code]}
+
+@app.post("/api/games/join/{room_code}")
+async def join_game_room(room_code: str, player_name: str):
+    if room_code not in game_rooms:
+        raise HTTPException(status_code=404, detail="Room not found")
+    
+    room = game_rooms[room_code]
+    if room["player2"]:
+        raise HTTPException(status_code=400, detail="Room is full")
+    
+    room["player2"] = player_name
+    room["status"] = "playing"
+    
+    await manager.broadcast({
+        "type": "player_joined",
+        "room": room
+    }, room_code)
+    
+    return {"success": True, "room": room}
+
+@app.get("/api/games/{room_code}")
+async def get_game_room(room_code: str):
+    if room_code not in game_rooms:
+        raise HTTPException(status_code=404, detail="Room not found")
+    return game_rooms[room_code]
+
+@app.post("/api/games/move")
+async def make_game_move(move: GameMove):
+    if move.room_code not in game_rooms:
+        raise HTTPException(status_code=404, detail="Room not found")
+    
+    room = game_rooms[move.room_code]
+    
+    if room["board"][move.move] is not None:
+        raise HTTPException(status_code=400, detail="Invalid move")
+    
+    # Determine player symbol
+    symbol = "X" if room["player1"] == move.player_name else "O"
+    
+    if room["current_turn"] != symbol:
+        raise HTTPException(status_code=400, detail="Not your turn")
+    
+    room["board"][move.move] = symbol
+    room["current_turn"] = "O" if symbol == "X" else "X"
+    
+    # Check for winner
+    winner = check_tictactoe_winner(room["board"])
+    if winner:
+        room["status"] = "finished"
+        room["winner"] = winner
+    elif all(cell is not None for cell in room["board"]):
+        room["status"] = "draw"
+    
+    await manager.broadcast({
+        "type": "game_move",
+        "room": room
+    }, move.room_code)
+    
+    return {"success": True, "room": room}
+
+def check_tictactoe_winner(board):
+    wins = [
+        [0, 1, 2], [3, 4, 5], [6, 7, 8],
+        [0, 3, 6], [1, 4, 7], [2, 5, 8],
+        [0, 4, 8], [2, 4, 6]
+    ]
+    
+    for combo in wins:
+        a, b, c = combo
+        if board[a] and board[a] == board[b] == board[c]:
+            return board[a]
+    return None
 
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles as BaseStaticFiles
