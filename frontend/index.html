@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jukebox AI - Party Music Platform</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div id="app">
+        <div id="home-screen" class="screen active">
+            <div class="container">
+                <h1>🎵 Jukebox AI</h1>
+                <p class="tagline">Let the crowd choose, the artist groove, and the AI mix the mood.</p>
+                
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="showScreen('create-screen')">
+                        🎤 Create Party Session
+                    </button>
+                    <button class="btn btn-secondary" onclick="showScreen('join-screen')">
+                        🎉 Join Party
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="create-screen" class="screen">
+            <div class="container">
+                <button class="btn-back" onclick="showScreen('home-screen')">← Back</button>
+                <h2>Create Party Session</h2>
+                <form onsubmit="createSession(event)">
+                    <input type="text" id="party-name" placeholder="Party Name" required>
+                    <input type="text" id="artist-name" placeholder="Artist/DJ Name" required>
+                    <button type="submit" class="btn btn-primary">Create Session</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="join-screen" class="screen">
+            <div class="container">
+                <button class="btn-back" onclick="showScreen('home-screen')">← Back</button>
+                <h2>Join Party</h2>
+                <form onsubmit="joinSession(event)">
+                    <input type="text" id="session-code" placeholder="Enter Session Code" required>
+                    <input type="text" id="guest-name" placeholder="Your Name" required>
+                    <button type="submit" class="btn btn-primary">Join</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="artist-screen" class="screen">
+            <div class="container">
+                <button class="btn-back" onclick="endSession()">← End Session</button>
+                <h2 id="artist-party-name">Party Dashboard</h2>
+                <div class="session-info">
+                    <div class="qr-container">
+                        <img id="qr-code" src="" alt="QR Code">
+                        <p>Session Code: <strong id="session-code-display"></strong></p>
+                    </div>
+                </div>
+
+                <div class="stats">
+                    <div class="stat-card">
+                        <h3 id="total-requests">0</h3>
+                        <p>Total Requests</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="total-tips">$0</h3>
+                        <p>Total Tips</p>
+                    </div>
+                </div>
+
+                <div class="requests-section">
+                    <h3>Song Queue</h3>
+                    <div id="artist-queue"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="party-screen" class="screen">
+            <div class="container">
+                <button class="btn-back" onclick="leaveParty()">← Leave Party</button>
+                <h2 id="party-name-display">Party Name</h2>
+                
+                <button class="btn btn-primary" onclick="showRequestForm()">
+                    🎵 Request a Song
+                </button>
+
+                <div id="voting-banner" class="voting-banner" style="display: none;">
+                    <h3>🗳️ Voting in Progress</h3>
+                    <p>Time remaining: <span id="voting-timer">60s</span></p>
+                </div>
+
+                <div class="requests-section">
+                    <h3>Song Requests</h3>
+                    <div id="party-requests"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="request-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeRequestForm()">&times;</span>
+                <h2>Request a Song</h2>
+                <form onsubmit="submitRequest(event)">
+                    <input type="text" id="song-name" placeholder="Song Name" required>
+                    <input type="text" id="song-artist" placeholder="Artist" required>
+                    <input type="number" id="tip-amount" placeholder="Tip Amount ($)" min="0" step="0.01" value="0">
+                    <button type="submit" class="btn btn-primary">Submit Request</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="/app.js"></script>
+</body>
+</html>
