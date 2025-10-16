@@ -96,6 +96,11 @@ class GameMove(BaseModel):
     player_name: str
     move: int
 
+class EmojiReaction(BaseModel):
+    room_code: str
+    player_name: str
+    emoji: str
+
 class PaymentCheckout(BaseModel):
     session_id: str
     payment_method: str  # "upi" or "gpay"
@@ -652,6 +657,20 @@ def check_tictactoe_winner(board):
         if board[a] and board[a] == board[b] == board[c]:
             return board[a]
     return None
+
+@app.post("/api/games/emoji")
+async def send_emoji_reaction(reaction: EmojiReaction):
+    if reaction.room_code not in game_rooms:
+        raise HTTPException(status_code=404, detail="Room not found")
+    
+    # Broadcast emoji to all players in the room
+    await manager.broadcast({
+        "type": "emoji_reaction",
+        "player_name": reaction.player_name,
+        "emoji": reaction.emoji
+    }, reaction.room_code)
+    
+    return {"success": True}
 
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles as BaseStaticFiles

@@ -151,7 +151,11 @@ function handleWebSocketMessage(data) {
                 currentGame.board = data.room.board;
                 currentGame.currentTurn = data.room.current_turn;
                 renderTicTacToe();
+                checkGameEnd();
             }
+            break;
+        case 'emoji_reaction':
+            showFloatingEmoji(data.player_name, data.emoji);
             break;
     }
 }
@@ -517,6 +521,10 @@ async function createGameRoom(event) {
     const hostName = document.getElementById('game-host-name').value;
     const password = document.getElementById('game-password').value;
     
+    // Store player name for later use
+    localStorage.setItem('playerName', hostName);
+    currentUser = { name: hostName, role: 'host' };
+    
     try {
         const response = await fetch('/api/games/create', {
             method: 'POST',
@@ -536,7 +544,8 @@ async function createGameRoom(event) {
             player2: null,
             board: Array(9).fill(null),
             currentTurn: 'X',
-            yourSymbol: 'X'
+            yourSymbol: 'X',
+            playerName: hostName
         };
         
         // Connect WebSocket for real-time updates
@@ -556,6 +565,10 @@ async function joinGameRoom(event) {
     const gameCode = document.getElementById('game-code').value.toUpperCase();
     const playerName = document.getElementById('game-player-name').value;
     const password = document.getElementById('game-join-password').value;
+    
+    // Store player name for later use
+    localStorage.setItem('playerName', playerName);
+    currentUser = { name: playerName, role: 'guest' };
     
     try {
         const response = await fetch(`/api/games/join/${gameCode}`, {
@@ -577,7 +590,8 @@ async function joinGameRoom(event) {
             player2: playerName,
             board: data.room.board,
             currentTurn: data.room.current_turn,
-            yourSymbol: 'O'
+            yourSymbol: 'O',
+            playerName: playerName
         };
         
         // Connect WebSocket for real-time updates
@@ -608,7 +622,8 @@ async function resumeGame(event) {
         const room = await response.json();
         
         // Determine which player they are based on stored session
-        const yourSymbol = room.player1 === localStorage.getItem('playerName') ? 'X' : 'O';
+        const playerName = localStorage.getItem('playerName');
+        const yourSymbol = room.player1 === playerName ? 'X' : 'O';
         
         currentGame = {
             code: gameCode,
@@ -617,7 +632,8 @@ async function resumeGame(event) {
             player2: room.player2,
             board: room.board,
             currentTurn: room.current_turn,
-            yourSymbol: yourSymbol
+            yourSymbol: yourSymbol,
+            playerName: playerName
         };
         
         connectGameWebSocket(gameCode);
@@ -668,13 +684,21 @@ async function makeMove(index) {
     if (currentGame.board[index] || checkWinner()) return;
     if (currentGame.currentTurn !== currentGame.yourSymbol) return;
     
+    // Get the player name from currentGame or localStorage
+    const playerName = currentGame.playerName || currentUser?.name || localStorage.getItem('playerName');
+    
+    if (!playerName) {
+        alert('Player name not found. Please refresh and try again.');
+        return;
+    }
+    
     try {
         const response = await fetch('/api/games/move', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 room_code: currentGame.code,
-                player_name: currentUser?.name || localStorage.getItem('playerName'),
+                player_name: playerName,
                 move: index
             })
         });
@@ -686,14 +710,7 @@ async function makeMove(index) {
         currentGame.currentTurn = data.room.current_turn;
         
         renderTicTacToe();
-        
-        const winner = checkWinner();
-        if (winner) {
-            document.getElementById('ttt-result').textContent = 
-                winner === currentGame.yourSymbol ? 'You Won! 🎉' : 'You Lost!';
-        } else if (currentGame.board.every(cell => cell)) {
-            document.getElementById('ttt-result').textContent = "It's a Draw!";
-        }
+        checkGameEnd();
     } catch (error) {
         alert('Error making move: ' + error.message);
     }
@@ -731,6 +748,74 @@ function checkWinner() {
 function leaveGame() {
     currentGame = null;
     showGamesScreen('games-home');
+}
+
+// Emoji Reaction Functions
+async function sendEmoji(emoji) {
+    if (!currentGame || !currentGame.code) {
+        alert('No active game');
+        return;
+    }
+    
+    const playerName = currentGame.playerName || currentUser?.name || localStorage.getItem('playerName');
+    
+    if (!playerName) {
+        alert('Player name not found');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/games/emoji', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                room_code: currentGame.code,
+                player_name: playerName,
+                emoji: emoji
+            })
+        });
+        
+        if (!response.ok) throw new Error('Failed to send emoji');
+    } catch (error) {
+        console.error('Error sending emoji:', error);
+    }
+}
+
+function showFloatingEmoji(playerName, emoji) {
+    const container = document.getElementById('emoji-reactions-container');
+    if (!container) return;
+    
+    const emojiElement = document.createElement('div');
+    emojiElement.className = 'floating-emoji';
+    
+    // Random position in the middle area of the screen
+    const randomX = Math.random() * 60 + 20; // Between 20% and 80%
+    const randomY = Math.random() * 30 + 50; // Between 50% and 80%
+    
+    emojiElement.style.left = `${randomX}%`;
+    emojiElement.style.top = `${randomY}%`;
+    
+    emojiElement.innerHTML = `
+        <span>${emoji}</span>
+        <span class="emoji-sender">${playerName}</span>
+    `;
+    
+    container.appendChild(emojiElement);
+    
+    // Remove after animation completes
+    setTimeout(() => {
+        container.removeChild(emojiElement);
+    }, 3000);
+}
+
+function checkGameEnd() {
+    const winner = checkWinner();
+    if (winner) {
+        document.getElementById('ttt-result').textContent = 
+            winner === currentGame.yourSymbol ? 'You Won! 🎉' : 'You Lost!';
+    } else if (currentGame.board.every(cell => cell)) {
+        document.getElementById('ttt-result').textContent = "It's a Draw!";
+    }
 }
 
 // ============== AI DJ ==============

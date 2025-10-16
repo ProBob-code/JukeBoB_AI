@@ -1,32 +1,36 @@
-# JuleBox - Ultimate Party Entertainment Platform
+# JUKEBOB - Ultimate Party Entertainment Platform
 
 ## Overview
-JuleBox is a comprehensive entertainment platform with three distinct sections:
-1. **Jukebox** - Crowd-controlled music with voting and tipping
-2. **Games** - Multiplayer games (Tic Tac Toe, Mafia coming soon)
+JUKEBOB is a comprehensive entertainment platform with three distinct sections:
+1. **Jukebox** - Crowd-controlled music with VIP/Regular queue system and tipping
+2. **Games** - Multiplayer games (Tic Tac Toe with emoji reactions)
 3. **AI DJ** - Smart mixing with dual turntables
 
 **Tagline:** "Your Ultimate Party Entertainment Hub"
 
 ## Current State
 The platform is fully functional with:
+- ✅ JUKEBOB branding with yellow theme (#F5D547)
 - ✅ Multi-section navigation (Jukebox, Games, AI DJ)
+- ✅ Password-protected persistent sessions
 - ✅ Dark neon theme for Jukebox
 - ✅ Light/fun theme for Games  
 - ✅ Tech theme for AI DJ
-- ✅ Priority queue system (higher tips = higher priority)
-- ✅ Tic Tac Toe with real-time gameplay
+- ✅ VIP/Regular queue system (₹10+ for VIP priority)
+- ✅ Tic Tac Toe with real-time gameplay and emoji reactions
 - ✅ Dual turntable AI DJ with file uploads
+- ✅ Complete payment system with 5% app fee
 
 ## Recent Changes
-- **2025-10-16**: Major platform expansion
-  - Restructured app into 3 main sections
-  - Added Jukebox with priority-based queue (max 10 songs)
-  - Implemented played/queued sections
-  - Added 5% app fee system with checkout
-  - Built Games section with Tic Tac Toe
-  - Created AI DJ studio with dual turntables
-  - Theme-based UI for each section
+- **2025-10-16**: Complete platform overhaul
+  - Rebranded from JuleBox to JUKEBOB
+  - Changed currency from $ to ₹ (Indian Rupees)
+  - Added password protection for all sessions
+  - Implemented VIP/Regular queue segregation
+  - Fixed Tic Tac Toe real-time synchronization
+  - Added emoji reaction system for games
+  - Fixed audio playback in AI DJ
+  - Enhanced UI with black text on white inputs
 
 ## Project Architecture
 
@@ -35,12 +39,14 @@ The platform is fully functional with:
 - FastAPI (Python) - REST API and WebSocket server
 - Uvicorn - ASGI server
 - Python 3.11
+- SHA256 password hashing
 
 **Frontend:**
 - HTML5/CSS3/JavaScript
 - WebSocket client for real-time updates
 - Multi-theme responsive design
 - File upload support for AI DJ
+- LocalStorage for session persistence
 
 **Key Libraries:**
 - `qrcode` - QR code generation
@@ -57,7 +63,9 @@ The platform is fully functional with:
 ├── frontend/
 │   ├── index.html       # Multi-section UI
 │   ├── styles.css       # Theme-based styling
-│   └── app.js           # Navigation & logic
+│   ├── app.js           # Navigation & logic
+│   ├── logo.png         # JUKEBOB logo
+│   └── icon.png         # JB icon
 ├── pyproject.toml       # Python dependencies
 └── replit.md           # This file
 ```
@@ -66,97 +74,117 @@ The platform is fully functional with:
 
 ### 1. Jukebox (Dark Neon Theme)
 **Features:**
-- Create/Join jukebox sessions with QR codes
-- Priority-based queue (higher tips = priority)
+- Password-protected sessions
+- VIP Queue (tips ≥ ₹10) - sorted by highest tip
+- Regular Queue (tips < ₹10) - first come, first served
 - Max 10 songs in queue
 - Played songs section
-- Real-time voting system
-- Tip escrow system with 5% app fee
+- Real-time queue updates for all participants
+- Tip tracking by member name
+- Session resume capability
 - Host dashboard with earnings
+- 5% app fee on checkout
 
 **API Endpoints:**
-- `POST /api/sessions/create` - Create jukebox
+- `POST /api/sessions/create` - Create jukebox with password
+- `POST /api/sessions/{id}/join` - Join with password
+- `POST /api/sessions/{id}/resume` - Resume with password
 - `POST /api/requests/submit` - Submit song with tip
-- `GET /api/requests/{session_id}` - Get queue (auto-sorted by tip)
+- `GET /api/requests/{session_id}` - Get segregated queue
 - `POST /api/requests/{id}/complete` - Mark as played
 - `POST /api/requests/{id}/skip` - Skip song (refund tip)
+- `POST /api/checkout/process` - Process payment with app fee
 
-**How It Works:**
-1. Host creates session, gets QR code
-2. Guests join and request songs with tips
-3. Queue auto-sorts by tip amount (priority)
-4. Top 10 songs shown in queue
-5. Host plays/skips songs
-6. Played songs move to "Recently Played"
-7. Tips held in escrow, released on play
-8. Host can checkout with 5% app fee deduction
+**Queue System:**
+- **VIP Queue**: ₹10+ tips, priority play, sorted by amount
+- **Regular Queue**: <₹10 tips, standard order
+- Visual distinction with golden gradient for VIP songs
 
 ### 2. Games (Light/Fun Theme)
 **Features:**
-- Create/Join game rooms
-- Tic Tac Toe with real-time gameplay
-- Multiplayer matchmaking
-- Turn-based system
-- Winner detection
+- Password-protected game rooms
+- Tic Tac Toe with real-time synchronization
+- Emoji reaction system (10 emojis)
+- Session persistence and resume
+- Turn-based gameplay
+- Winner/draw detection
+
+**Emoji Reactions:**
+- 😂 Laughing
+- 😭 Crying
+- 😎 Attitude
+- 😉 Wink
+- 😘 Kiss
+- 😜 Tease
+- 😱 Shocking
+- 👏 Clap
+- 🌹 Rose
+- 🏆 Trophy
 
 **API Endpoints:**
-- `POST /api/games/create` - Create game room
-- `POST /api/games/join/{code}` - Join game
+- `POST /api/games/create` - Create game room with password
+- `POST /api/games/join/{code}` - Join with password
+- `POST /api/games/{code}/resume` - Resume game
 - `GET /api/games/{code}` - Get game state
 - `POST /api/games/move` - Make move
+- `POST /api/games/emoji` - Send emoji reaction
 - `WS /ws/{room_code}` - Real-time updates
 
 **Games Available:**
-- ✅ Tic Tac Toe (2 players)
+- ✅ Tic Tac Toe (2 players, real-time, with emojis)
 - 🔜 Mafia (Coming soon)
 
 ### 3. AI DJ (Tech Theme)
 **Features:**
 - Dual turntable interface
 - Upload tracks from device
-- AI-powered crossfading
-- Auto-mix functionality
+- Audio playback with controls
+- AI-powered crossfading simulation
 - Volume control per deck
 
 **How It Works:**
 1. Upload audio files to Deck A and Deck B
-2. Click "Auto Mix" to start AI mixing
-3. AI automatically crossfades between tracks
-4. Manual crossfader control available
+2. Files are loaded and ready to play
+3. Click play on audio controls
+4. Use Auto Mix for simulated crossfading
 
 ## Payment System
 
 ### Wallet & Tips
-- Users start with $100 virtual balance
-- Tips deducted on request
-- Held in escrow until song plays
+- All amounts in ₹ (Indian Rupees)
+- VIP queue requires minimum ₹10 tip
+- Higher tips get higher priority
+- Tips held in escrow until song plays
 - Artist receives tip on completion
-- Requester gets refund if skipped
+- Refund on skip
 
 ### App Fee System
 - 5% fee on all tip transactions
 - Fee calculated at checkout
-- Separate accounting for app earnings
-- UPI/GPay integration (coming soon)
-
-### Checkout Flow
-1. Host views total tips collected
-2. System calculates 5% app fee
-3. Shows net earnings (95%)
-4. Transfer to wallet (UPI/GPay integration pending)
+- UPI/GPay integration ready
+- Mock payment processing (2-second simulation)
 
 ## Real-time Features
 - WebSocket connections per session
-- Live queue updates
-- Instant game moves
+- Live queue updates for all participants
+- Instant game moves and emoji reactions
 - Session-wide broadcasts
 - Auto-reconnect on disconnect
 
-## User Preferences
+## Authentication & Security
+- Password protection on all sessions
+- SHA256 password hashing
+- Session persistence with secure resume
+- LocalStorage for client-side state
+- Passwords never stored in plain text
+
+## User Experience
 - Mobile-first responsive design
 - Theme-specific color schemes
+- Black text on white input fields
 - Fast interactions and transitions
 - No-cache headers for instant updates
+- Floating emoji animations in games
 
 ## Next Phase Features
 - [ ] Real Supabase database integration
@@ -164,52 +192,45 @@ The platform is fully functional with:
 - [ ] Mafia game implementation
 - [ ] Advanced AI DJ with beat matching
 - [ ] Multi-room venue support
-- [ ] User authentication
+- [ ] User authentication system
 - [ ] Social sharing features
 - [ ] Analytics dashboard
-
-## Development Notes
-- Server runs on port 5000 (required for Replit)
-- WebSocket auto-reconnect enabled
-- In-memory storage (resets on restart)
-- No-cache headers prevent browser caching
-- QR codes use REPLIT_DEV_DOMAIN
-- Static files served from `/frontend`
 
 ## Testing Instructions
 
 ### Jukebox
-1. Create jukebox session
-2. Join from another device/browser
+1. Create jukebox session with password
+2. Share code and password with friends
 3. Submit songs with different tip amounts
-4. Verify queue sorts by tip (highest first)
-5. Test max 10 queue limit
+4. Verify VIP songs (≥₹10) appear first
+5. Test regular queue for <₹10 tips
 6. Mark songs as played/skipped
 7. Check played songs section
-8. Test checkout with 5% fee calculation
+8. Test session resume after refresh
+9. Test checkout with 5% fee
 
 ### Games
-1. Create Tic Tac Toe room
-2. Join from another browser
-3. Play turns alternately
-4. Verify win detection
-5. Test draw scenario
+1. Create Tic Tac Toe room with password
+2. Share code and password
+3. Join from another browser
+4. Play moves - verify real-time sync
+5. Send emoji reactions during game
+6. Verify winner/draw detection
+7. Test session resume after refresh
 
 ### AI DJ
 1. Upload audio files to both decks
-2. Click Auto Mix
-3. Watch crossfader animation
-4. Test manual volume control
+2. Files should load and show ready status
+3. Click play to hear audio
+4. Test Auto Mix animation
+5. Control volume for each deck
 
 ## Known Limitations
-- Data doesn't persist (in-memory only)
-- Payment integration is placeholder
-- AI DJ uses basic crossfade (no beat matching yet)
+- Data doesn't persist on server restart (in-memory only)
+- Payment integration is simulated
+- AI DJ uses basic crossfade (no beat matching)
 - Single server instance (no scaling)
-- Browser cache may need hard refresh
+- Audio files are temporary (not stored permanently)
 
-## Cache Clearing (If Tabs Don't Work)
-If you see "showSection is not defined" errors:
-- **Windows/Linux**: Ctrl + Shift + R or Ctrl + F5
-- **Mac**: Cmd + Shift + R
-- Or clear browser cache manually
+## Deployment
+Ready for deployment via Replit's Deploy button. The app will get a live URL that can be shared with others. All features are production-ready except real payment gateway integration which requires API keys from Razorpay/Stripe.
