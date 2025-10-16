@@ -257,24 +257,70 @@ function renderQueue(containerId, requests, isHost) {
         return;
     }
     
-    requests.forEach((req, index) => {
-        const card = document.createElement('div');
-        card.className = 'request-card';
-        card.innerHTML = `
-            <div class="request-info">
-                <h4>#${index + 1} ${req.song_name}</h4>
-                <p>${req.artist} • ${req.requester_name}</p>
-                <p>💰 Tip: ₹${req.tip_amount.toFixed(2)}</p>
-            </div>
-            ${isHost ? `
-                <div class="request-actions">
-                    <button class="complete-btn" onclick="completeRequest('${req.id}')">✓</button>
-                    <button class="skip-btn" onclick="skipRequest('${req.id}')">✗</button>
-                </div>
-            ` : ''}
+    // Separate VIP and Regular songs
+    const vipSongs = requests.filter(r => r.tip_amount >= 10);
+    const regularSongs = requests.filter(r => r.tip_amount < 10);
+    
+    // Add VIP Queue section if there are VIP songs
+    if (vipSongs.length > 0) {
+        const vipHeader = document.createElement('div');
+        vipHeader.className = 'queue-section-header vip-header';
+        vipHeader.innerHTML = `
+            <h3>👑 VIP Queue</h3>
+            <p class="vip-note">Songs with tips ₹10 or more get priority</p>
         `;
-        container.appendChild(card);
-    });
+        container.appendChild(vipHeader);
+        
+        vipSongs.forEach((req, index) => {
+            const card = document.createElement('div');
+            card.className = 'request-card vip-card';
+            card.innerHTML = `
+                <div class="vip-indicator">👑</div>
+                <div class="request-info">
+                    <h4>#${index + 1} ${req.song_name}</h4>
+                    <p>${req.artist} • ${req.requester_name}</p>
+                    <p class="tip-amount vip-tip">💰 VIP Tip: ₹${req.tip_amount.toFixed(2)}</p>
+                </div>
+                ${isHost ? `
+                    <div class="request-actions">
+                        <button class="complete-btn" onclick="completeRequest('${req.id}')">✓</button>
+                        <button class="skip-btn" onclick="skipRequest('${req.id}')">✗</button>
+                    </div>
+                ` : ''}
+            `;
+            container.appendChild(card);
+        });
+    }
+    
+    // Add Regular Queue section if there are regular songs
+    if (regularSongs.length > 0) {
+        const regularHeader = document.createElement('div');
+        regularHeader.className = 'queue-section-header regular-header';
+        regularHeader.innerHTML = `
+            <h3>🎵 Regular Queue</h3>
+            <p class="regular-note">Tip ₹10 or more to jump to VIP queue</p>
+        `;
+        container.appendChild(regularHeader);
+        
+        regularSongs.forEach((req, index) => {
+            const card = document.createElement('div');
+            card.className = 'request-card regular-card';
+            card.innerHTML = `
+                <div class="request-info">
+                    <h4>#${vipSongs.length + index + 1} ${req.song_name}</h4>
+                    <p>${req.artist} • ${req.requester_name}</p>
+                    <p class="tip-amount">💰 Tip: ₹${req.tip_amount.toFixed(2)}</p>
+                </div>
+                ${isHost ? `
+                    <div class="request-actions">
+                        <button class="complete-btn" onclick="completeRequest('${req.id}')">✓</button>
+                        <button class="skip-btn" onclick="skipRequest('${req.id}')">✗</button>
+                    </div>
+                ` : ''}
+            `;
+            container.appendChild(card);
+        });
+    }
 }
 
 function renderPlayed(containerId, requests) {

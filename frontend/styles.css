@@ -327,6 +327,32 @@ input:focus, select:focus {
     border: 1px solid rgba(240, 147, 251, 0.3);
 }
 
+/* Queue Section Headers */
+.queue-section-header {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.queue-section-header h3 {
+    color: #fff;
+    margin-bottom: 5px;
+}
+
+.vip-header h3 {
+    color: #ffd700;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.vip-note, .regular-note {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.vip-note {
+    color: rgba(255, 215, 0, 0.8);
+}
+
 .request-card {
     background: rgba(255, 255, 255, 0.1);
     padding: 15px;
@@ -336,6 +362,44 @@ input:focus, select:focus {
     justify-content: space-between;
     align-items: center;
     border-left: 4px solid #f093fb;
+    position: relative;
+}
+
+/* VIP Card Styling */
+.vip-card {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 193, 7, 0.1));
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-left: 4px solid #ffd700;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
+}
+
+.vip-card .request-info h4 {
+    color: #ffd700;
+}
+
+.vip-indicator {
+    position: absolute;
+    left: -15px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.5rem;
+    filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.5));
+}
+
+.vip-tip {
+    color: #ffd700 !important;
+    font-weight: 600;
+}
+
+/* Regular Card Styling */
+.regular-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-left: 4px solid #9ca3af;
+}
+
+.tip-amount {
+    margin-top: 5px;
+    font-weight: 500;
 }
 
 .request-info h4 {
@@ -375,6 +439,61 @@ input:focus, select:focus {
     color: #f093fb;
     font-size: 0.9rem;
     margin-top: 10px;
+}
+
+/* VIP Benefits Info in Modal */
+.vip-benefits-info {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(240, 147, 251, 0.2);
+    border-radius: 10px;
+    padding: 15px;
+    margin: 15px 0;
+}
+
+.vip-benefits-info h4 {
+    color: #fff;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+}
+
+.queue-tier {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.tier-badge {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+.tier-badge.vip {
+    background: linear-gradient(135deg, #ffd700, #ffed4e);
+    color: #333;
+}
+
+.tier-badge.regular {
+    background: rgba(156, 163, 175, 0.2);
+    color: #fff;
+}
+
+.tier-requirement {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+}
+
+.benefits-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 15px 20px;
+}
+
+.benefits-list li {
+    padding: 4px 0;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.9rem;
 }
 
 /* Tic Tac Toe Board */

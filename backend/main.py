@@ -206,7 +206,7 @@ async def submit_request(request: SongRequest):
         "tip_amount": request.tip_amount,
         "votes": 0,
         "voters": [],
-        "status": "pending",
+        "status": "queued",  # Changed from "pending" to "queued" - songs go directly to queue
         "created_at": datetime.now().isoformat()
     }
     
@@ -225,8 +225,7 @@ async def submit_request(request: SongRequest):
         "queue": song_requests[request.session_id]
     }, request.session_id)
     
-    if len([r for r in song_requests[request.session_id] if r["status"] == "pending"]) >= 2:
-        asyncio.create_task(start_voting_session(request.session_id))
+    # Removed voting system - songs go directly to queue
     
     return {"request_id": request_id, "request": song_request}
 
@@ -402,19 +401,29 @@ async def get_requests(session_id: str):
     if session_id not in song_requests:
         return []
     
-    # Sort queued requests by tip amount (priority)
+    # Segregate VIP and Regular queue songs
     requests = song_requests[session_id]
-    queued = sorted([r for r in requests if r["status"] == "queued"], 
-                    key=lambda x: x.get("tip_amount", 0), reverse=True)
+    queued_songs = [r for r in requests if r["status"] == "queued"]
+    
+    # VIP songs: tips >= ₹10, sorted by tip amount (highest first)
+    vip_songs = sorted(
+        [r for r in queued_songs if r.get("tip_amount", 0) >= 10],
+        key=lambda x: x.get("tip_amount", 0),
+        reverse=True
+    )
+    
+    # Regular songs: tips < ₹10, kept in submission order (by created_at)
+    regular_songs = [r for r in queued_songs if r.get("tip_amount", 0) < 10]
+    # Regular songs maintain their submission order (no sorting needed since they're already in order)
+    
+    # Combine: VIP songs first, then Regular songs
+    all_queued = vip_songs + regular_songs
+    
+    # Get other statuses (completed, skipped, etc.)
     other = [r for r in requests if r["status"] != "queued"]
     
-    # Limit queue to 10 items, move excess to pending
-    if len(queued) > 10:
-        for req in queued[10:]:
-            req["status"] = "pending"
-        queued = queued[:10]
-    
-    return queued + other
+    # Return all requests with VIP prioritized in queue
+    return all_queued + other
 
 @app.websocket("/ws/{session_id}")
 async def websocket_endpoint(websocket: WebSocket, session_id: str):

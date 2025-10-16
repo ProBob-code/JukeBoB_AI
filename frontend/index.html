@@ -270,8 +270,29 @@
                 <form onsubmit="submitSongRequest(event)">
                     <input type="text" id="song-name" placeholder="Song Name" required>
                     <input type="text" id="song-artist" placeholder="Artist" required>
-                    <input type="number" id="tip-amount" placeholder="Tip Amount (₹)" min="1" step="0.01" required>
-                    <p class="tip-note">💡 Higher tips = Higher priority in queue!</p>
+                    <input type="number" id="tip-amount" placeholder="Tip Amount (₹)" min="0" step="0.01">
+                    
+                    <div class="vip-benefits-info">
+                        <h4>💡 Queue Priority System:</h4>
+                        <div class="queue-tier">
+                            <span class="tier-badge vip">👑 VIP Queue</span>
+                            <span class="tier-requirement">Tip ₹10 or more</span>
+                        </div>
+                        <ul class="benefits-list">
+                            <li>🎯 Jump ahead of all regular requests</li>
+                            <li>⚡ Higher tips get priority within VIP queue</li>
+                            <li>✨ Special gold styling & crown indicator</li>
+                        </ul>
+                        <div class="queue-tier">
+                            <span class="tier-badge regular">🎵 Regular Queue</span>
+                            <span class="tier-requirement">Tip less than ₹10</span>
+                        </div>
+                        <ul class="benefits-list">
+                            <li>📝 Processed after all VIP requests</li>
+                            <li>⏰ First-come, first-served order</li>
+                        </ul>
+                    </div>
+                    
                     <button type="submit" class="btn btn-primary">Submit Request</button>
                 </form>
             </div>
