@@ -14,6 +14,7 @@ from io import BytesIO
 import base64
 import sys
 from pathlib import Path
+import hashlib
 sys.path.insert(0, str(Path(__file__).parent))
 from ai_dj import AIDJAgent
 
@@ -67,6 +68,7 @@ app_revenue = {"total": 0.0, "transactions": []}
 class PartySession(BaseModel):
     name: str
     artist_id: str
+    password: str
 
 class SongRequest(BaseModel):
     song_name: str
@@ -87,6 +89,7 @@ class TipRequest(BaseModel):
 class GameRoom(BaseModel):
     game_type: str
     player_name: str
+    password: str
 
 class GameMove(BaseModel):
     room_code: str
@@ -98,6 +101,9 @@ class PaymentCheckout(BaseModel):
     payment_method: str  # "upi" or "gpay"
     upi_id: Optional[str] = None
 
+def hash_password(password: str) -> str:
+    return hashlib.sha256(password.encode()).hexdigest()
+
 @app.post("/api/sessions/create")
 async def create_session(session: PartySession):
     session_id = str(uuid.uuid4())[:8].upper()
@@ -105,9 +111,12 @@ async def create_session(session: PartySession):
         "id": session_id,
         "name": session.name,
         "artist_id": session.artist_id,
+        "password_hash": hash_password(session.password),
         "created_at": datetime.now().isoformat(),
         "active": True,
-        "mode": "voting"
+        "mode": "voting",
+        "participants": [],
+        "tips_by_member": {}
     }
     song_requests[session_id] = []
     ai_dj_agents[session_id] = AIDJAgent()
@@ -132,6 +141,57 @@ async def get_session(session_id: str):
         raise HTTPException(status_code=404, detail="Session not found")
     return party_sessions[session_id]
 
+class JoinSession(BaseModel):
+    guest_name: str
+    password: str
+
+class ResumeSession(BaseModel):
+    password: str
+
+@app.post("/api/sessions/{session_id}/join")
+async def join_session(session_id: str, join_data: JoinSession):
+    if session_id not in party_sessions:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    session = party_sessions[session_id]
+    if hash_password(join_data.password) != session["password_hash"]:
+        raise HTTPException(status_code=401, detail="Invalid password")
+    
+    if join_data.guest_name not in session["participants"]:
+        session["participants"].append(join_data.guest_name)
+    
+    await manager.broadcast({
+        "type": "user_joined",
+        "user": join_data.guest_name
+    }, session_id)
+    
+    return session
+
+@app.post("/api/sessions/{session_id}/resume")
+async def resume_session(session_id: str, resume_data: ResumeSession):
+    if session_id not in party_sessions:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    session = party_sessions[session_id]
+    if hash_password(resume_data.password) != session["password_hash"]:
+        raise HTTPException(status_code=401, detail="Invalid password")
+    
+    # Generate QR code again
+    qr_data = f"{os.getenv('REPLIT_DEV_DOMAIN', 'localhost:5000')}/join/{session_id}"
+    img = qrcode.make(qr_data)
+    buffered = BytesIO()
+    img.save(buffered, format="PNG")
+    qr_base64 = base64.b64encode(buffered.getvalue()).decode()
+    
+    # Determine user role based on artist_id
+    user_role = {"name": session["artist_id"], "role": "host"} if resume_data.password else {"name": "Guest", "role": "guest"}
+    
+    return {
+        "session": session,
+        "qr_code": qr_base64,
+        "user_role": user_role
+    }
+
 @app.post("/api/requests/submit")
 async def submit_request(request: SongRequest):
     if request.session_id not in party_sessions:
@@ -150,11 +210,19 @@ async def submit_request(request: SongRequest):
         "created_at": datetime.now().isoformat()
     }
     
+    # Track tips by member
+    session = party_sessions[request.session_id]
+    if request.requester_name not in session["tips_by_member"]:
+        session["tips_by_member"][request.requester_name] = 0
+    session["tips_by_member"][request.requester_name] += request.tip_amount
+    
     song_requests[request.session_id].append(song_request)
     
+    # Broadcast to all connected clients
     await manager.broadcast({
         "type": "new_request",
-        "request": song_request
+        "request": song_request,
+        "queue": song_requests[request.session_id]
     }, request.session_id)
     
     if len([r for r in song_requests[request.session_id] if r["status"] == "pending"]) >= 2:
@@ -489,6 +557,7 @@ async def create_game_room(room: GameRoom):
         "type": room.game_type,
         "player1": room.player_name,
         "player2": None,
+        "password_hash": hash_password(room.password),
         "board": [None] * 9,
         "current_turn": "X",
         "status": "waiting",
@@ -496,16 +565,23 @@ async def create_game_room(room: GameRoom):
     }
     return {"room_code": room_code, "room": game_rooms[room_code]}
 
+class JoinGameRoom(BaseModel):
+    player_name: str
+    password: str
+
 @app.post("/api/games/join/{room_code}")
-async def join_game_room(room_code: str, player_name: str):
+async def join_game_room(room_code: str, join_data: JoinGameRoom):
     if room_code not in game_rooms:
         raise HTTPException(status_code=404, detail="Room not found")
     
     room = game_rooms[room_code]
+    if hash_password(join_data.password) != room["password_hash"]:
+        raise HTTPException(status_code=401, detail="Invalid password")
+    
     if room["player2"]:
         raise HTTPException(status_code=400, detail="Room is full")
     
-    room["player2"] = player_name
+    room["player2"] = join_data.player_name
     room["status"] = "playing"
     
     await manager.broadcast({

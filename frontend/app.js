@@ -60,6 +60,7 @@ async function createJukebox(event) {
     
     const partyName = document.getElementById('jukebox-name').value;
     const hostName = document.getElementById('host-name').value;
+    const password = document.getElementById('jukebox-password').value;
     
     try {
         const response = await fetch('/api/sessions/create', {
@@ -67,7 +68,8 @@ async function createJukebox(event) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 name: partyName,
-                artist_id: hostName
+                artist_id: hostName,
+                password: password
             })
         });
         
@@ -92,10 +94,18 @@ async function joinJukebox(event) {
     
     const sessionCode = document.getElementById('jukebox-code').value.toUpperCase();
     const guestName = document.getElementById('guest-name-jukebox').value;
+    const password = document.getElementById('jukebox-join-password').value;
     
     try {
-        const response = await fetch(`/api/sessions/${sessionCode}`);
-        if (!response.ok) throw new Error('Session not found');
+        const response = await fetch(`/api/sessions/${sessionCode}/join`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                guest_name: guestName,
+                password: password
+            })
+        });
+        if (!response.ok) throw new Error('Session not found or password incorrect');
         
         const session = await response.json();
         currentSession = sessionCode;
@@ -130,11 +140,18 @@ function connectWebSocket(sessionId) {
 function handleWebSocketMessage(data) {
     switch(data.type) {
         case 'new_request':
-            refreshJukebox();
-            break;
         case 'request_completed':
         case 'request_skipped':
+        case 'queue_update':
+        case 'tip_added':
             refreshJukebox();
+            break;
+        case 'game_move':
+            if (currentGame && data.room) {
+                currentGame.board = data.room.board;
+                currentGame.currentTurn = data.room.current_turn;
+                renderTicTacToe();
+            }
             break;
     }
 }
@@ -205,7 +222,7 @@ async function loadHostRequests() {
         
         document.getElementById('queue-count').textContent = queued.length;
         document.getElementById('played-count').textContent = played.length;
-        document.getElementById('host-tips').textContent = '$' + totalTips.toFixed(2);
+        document.getElementById('host-tips').textContent = '₹' + totalTips.toFixed(2);
         
         renderQueue('host-queue', queued, true);
         renderPlayed('host-played', played);
@@ -247,7 +264,7 @@ function renderQueue(containerId, requests, isHost) {
             <div class="request-info">
                 <h4>#${index + 1} ${req.song_name}</h4>
                 <p>${req.artist} • ${req.requester_name}</p>
-                <p>💰 Tip: $${req.tip_amount.toFixed(2)}</p>
+                <p>💰 Tip: ₹${req.tip_amount.toFixed(2)}</p>
             </div>
             ${isHost ? `
                 <div class="request-actions">
@@ -300,7 +317,7 @@ function closeRequestForm() {
 
 function showCheckout() {
     document.getElementById('checkout-modal').classList.add('active');
-    const totalTips = parseFloat(document.getElementById('host-tips').textContent) || 0;
+    const totalTips = parseFloat(document.getElementById('host-tips').textContent.replace('₹', '')) || 0;
     const appFee = totalTips * 0.05;
     const netEarnings = totalTips * 0.95;
     
@@ -368,7 +385,7 @@ async function processPayment(method) {
                 </div>
             `;
             // Update host tips display
-            document.getElementById('host-tips').textContent = '0.00';
+            document.getElementById('host-tips').textContent = '₹0.00';
         } else {
             resultDiv.innerHTML = `
                 <div class="error-message" style="color: #f44336;">
@@ -407,6 +424,44 @@ function leaveJukebox() {
     showJukeboxScreen('jukebox-home');
 }
 
+// Resume Jukebox Session
+async function resumeJukebox(event) {
+    event.preventDefault();
+    
+    const sessionCode = document.getElementById('resume-jukebox-code').value.toUpperCase();
+    const password = document.getElementById('resume-jukebox-password').value;
+    
+    try {
+        const response = await fetch(`/api/sessions/${sessionCode}/resume`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: password })
+        });
+        
+        if (!response.ok) throw new Error('Session not found or password incorrect');
+        
+        const data = await response.json();
+        currentSession = sessionCode;
+        currentUser = data.user_role;
+        
+        if (data.user_role.role === 'host') {
+            document.getElementById('host-jukebox-name').textContent = data.session.name;
+            document.getElementById('jukebox-code-display').textContent = sessionCode;
+            document.getElementById('jukebox-qr').src = 'data:image/png;base64,' + data.qr_code;
+            showJukeboxScreen('host-dashboard');
+            loadHostRequests();
+        } else {
+            document.getElementById('guest-jukebox-name').textContent = data.session.name;
+            showJukeboxScreen('guest-jukebox');
+            loadGuestRequests();
+        }
+        
+        connectWebSocket(sessionCode);
+    } catch (error) {
+        alert('Error resuming session: ' + error.message);
+    }
+}
+
 // ============== GAMES ==============
 
 async function createGameRoom(event) {
@@ -414,12 +469,23 @@ async function createGameRoom(event) {
     
     const gameType = document.getElementById('game-type').value;
     const hostName = document.getElementById('game-host-name').value;
+    const password = document.getElementById('game-password').value;
     
-    if (gameType === 'tictactoe') {
-        const roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+    try {
+        const response = await fetch('/api/games/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                game_type: gameType,
+                player_name: hostName,
+                password: password
+            })
+        });
+        
+        const data = await response.json();
         currentGame = {
-            code: roomCode,
-            type: 'tictactoe',
+            code: data.room_code,
+            type: gameType,
             player1: hostName,
             player2: null,
             board: Array(9).fill(null),
@@ -427,9 +493,14 @@ async function createGameRoom(event) {
             yourSymbol: 'X'
         };
         
-        document.getElementById('ttt-room-code').textContent = roomCode;
+        // Connect WebSocket for real-time updates
+        connectGameWebSocket(data.room_code);
+        
+        document.getElementById('ttt-room-code').textContent = data.room_code;
         renderTicTacToe();
         showGamesScreen('tictactoe-game');
+    } catch (error) {
+        alert('Error creating game room: ' + error.message);
     }
 }
 
@@ -438,21 +509,97 @@ async function joinGameRoom(event) {
     
     const gameCode = document.getElementById('game-code').value.toUpperCase();
     const playerName = document.getElementById('game-player-name').value;
+    const password = document.getElementById('game-join-password').value;
     
-    // For demo: simulate joining
-    currentGame = {
-        code: gameCode,
-        type: 'tictactoe',
-        player1: 'Player 1',
-        player2: playerName,
-        board: Array(9).fill(null),
-        currentTurn: 'X',
-        yourSymbol: 'O'
+    try {
+        const response = await fetch(`/api/games/join/${gameCode}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                player_name: playerName,
+                password: password
+            })
+        });
+        
+        if (!response.ok) throw new Error('Game not found or password incorrect');
+        
+        const data = await response.json();
+        currentGame = {
+            code: gameCode,
+            type: 'tictactoe',
+            player1: data.room.player1,
+            player2: playerName,
+            board: data.room.board,
+            currentTurn: data.room.current_turn,
+            yourSymbol: 'O'
+        };
+        
+        // Connect WebSocket for real-time updates
+        connectGameWebSocket(gameCode);
+        
+        document.getElementById('ttt-room-code').textContent = gameCode;
+        renderTicTacToe();
+        showGamesScreen('tictactoe-game');
+    } catch (error) {
+        alert('Error joining game: ' + error.message);
+    }
+}
+
+// Resume game function
+async function resumeGame(event) {
+    event.preventDefault();
+    
+    const gameCode = document.getElementById('resume-game-code').value.toUpperCase();
+    const password = document.getElementById('resume-game-password').value;
+    
+    try {
+        const response = await fetch(`/api/games/${gameCode}`, {
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (!response.ok) throw new Error('Game not found');
+        
+        const room = await response.json();
+        
+        // Determine which player they are based on stored session
+        const yourSymbol = room.player1 === localStorage.getItem('playerName') ? 'X' : 'O';
+        
+        currentGame = {
+            code: gameCode,
+            type: room.type,
+            player1: room.player1,
+            player2: room.player2,
+            board: room.board,
+            currentTurn: room.current_turn,
+            yourSymbol: yourSymbol
+        };
+        
+        connectGameWebSocket(gameCode);
+        
+        document.getElementById('ttt-room-code').textContent = gameCode;
+        renderTicTacToe();
+        showGamesScreen('tictactoe-game');
+    } catch (error) {
+        alert('Error resuming game: ' + error.message);
+    }
+}
+
+// WebSocket for games
+function connectGameWebSocket(roomCode) {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${window.location.host}/ws/${roomCode}`;
+    
+    if (ws) ws.close();
+    ws = new WebSocket(wsUrl);
+    
+    ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        handleWebSocketMessage(data);
     };
     
-    document.getElementById('ttt-room-code').textContent = gameCode;
-    renderTicTacToe();
-    showGamesScreen('tictactoe-game');
+    ws.onclose = () => {
+        setTimeout(() => connectGameWebSocket(roomCode), 3000);
+    };
 }
 
 function renderTicTacToe() {
@@ -471,21 +618,38 @@ function renderTicTacToe() {
     updateTurnInfo();
 }
 
-function makeMove(index) {
+async function makeMove(index) {
     if (currentGame.board[index] || checkWinner()) return;
     if (currentGame.currentTurn !== currentGame.yourSymbol) return;
     
-    currentGame.board[index] = currentGame.currentTurn;
-    currentGame.currentTurn = currentGame.currentTurn === 'X' ? 'O' : 'X';
-    
-    renderTicTacToe();
-    
-    const winner = checkWinner();
-    if (winner) {
-        document.getElementById('ttt-result').textContent = 
-            winner === currentGame.yourSymbol ? 'You Won! 🎉' : 'You Lost!';
-    } else if (currentGame.board.every(cell => cell)) {
-        document.getElementById('ttt-result').textContent = "It's a Draw!";
+    try {
+        const response = await fetch('/api/games/move', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                room_code: currentGame.code,
+                player_name: currentUser?.name || localStorage.getItem('playerName'),
+                move: index
+            })
+        });
+        
+        if (!response.ok) throw new Error('Invalid move');
+        
+        const data = await response.json();
+        currentGame.board = data.room.board;
+        currentGame.currentTurn = data.room.current_turn;
+        
+        renderTicTacToe();
+        
+        const winner = checkWinner();
+        if (winner) {
+            document.getElementById('ttt-result').textContent = 
+                winner === currentGame.yourSymbol ? 'You Won! 🎉' : 'You Lost!';
+        } else if (currentGame.board.every(cell => cell)) {
+            document.getElementById('ttt-result').textContent = "It's a Draw!";
+        }
+    } catch (error) {
+        alert('Error making move: ' + error.message);
     }
 }
 
@@ -533,14 +697,32 @@ function loadTrack(deck, input) {
     const player = document.getElementById(`deck-${deck}-player`);
     const info = document.getElementById(`deck-${deck}-info`);
     
+    // Ensure the audio element loads the file properly
     player.src = url;
+    player.load(); // Force load the audio file
+    
     info.innerHTML = `
         <p><strong>${file.name}</strong></p>
         <p>Size: ${(file.size / 1024 / 1024).toFixed(2)} MB</p>
+        <p>Type: ${file.type}</p>
     `;
     
-    if (deck === 'a') deckA = { file, url };
-    else deckB = { file, url };
+    // Store deck information
+    if (deck === 'a') {
+        deckA = { file, url };
+    } else {
+        deckB = { file, url };
+    }
+    
+    // Add event listener to handle playback
+    player.addEventListener('canplaythrough', () => {
+        info.innerHTML += '<p style="color: #00d4ff;">✓ Ready to play</p>';
+    });
+    
+    player.addEventListener('error', (e) => {
+        info.innerHTML += '<p style="color: #ff6b6b;">✗ Error loading file</p>';
+        console.error('Audio loading error:', e);
+    });
 }
 
 function aiAutoMix() {
