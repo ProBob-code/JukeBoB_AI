@@ -813,7 +813,7 @@ class StaticFilesNoCache(BaseStaticFiles):
         response.headers["Expires"] = "0"
         return response
 
-app.mount("/", StaticFilesNoCache(directory="frontend", html=True), name="frontend")
+app.mount("/", StaticFilesNoCache(directory="../frontend", html=True), name="frontend")
 
 if __name__ == "__main__":
     import uvicorn

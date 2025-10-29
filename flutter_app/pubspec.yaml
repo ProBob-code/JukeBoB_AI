@@ -1,0 +1,54 @@
+name: jukebob_flutter
+description: Flutter client for JukeBoB AI (Jukebox, Games, AI DJ)
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: '>=3.5.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # HTTP client
+  http: ^1.2.2
+
+  # WebSocket wrapper (compatible with web & desktop)
+  web_socket_channel: ^3.0.0
+
+  # state management (if you use it)
+  provider: ^6.1.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.1
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/logo.png
+    - assets/icon.png
+
+# flutter_launcher_icons config — keeps it nearby and readable
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: assets/icon.png
+  web:
+    generate: true
+    image_path: assets/icon.png
+    background_color: "#FFC107"
+    theme_color: "#FFC107"
+  windows:
+    generate: true
+    image_path: assets/icon.png
+    icon_size: 256
+  macos:
+    generate: true
+    image_path: assets/icon.png
+  linux:
+    generate: true
+    image_path: assets/icon.png
