@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JukeBoB AI - Executive Presentation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --gold-primary: #D4A853;
+            --gold-light: #E8C97A;
+            --gold-dark: #B8923E;
+            --navy-dark: #0D1B2A;
+            --navy-mid: #1B2838;
+            --navy-light: #243447;
+            --text-white: #FFFFFF;
+            --text-light: #E0E6ED;
+            --text-muted: #8899A8;
+            --success: #22C55E;
+            --warning: #EAB308;
+            --accent-pink: #EC4899;
+            --accent-blue: #3B82F6;
+            --accent-cyan: #06B6D4;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--navy-dark);
+            color: var(--text-white);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            padding: 48px 64px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy-mid) 100%);
+            page-break-after: always;
+            overflow: hidden;
+        }
+
+        .slide::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 40%;
+            height: 100%;
+            background: radial-gradient(ellipse at top right, rgba(212, 168, 83, 0.08) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        /* Header */
+        .slide-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(212, 168, 83, 0.2);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--gold-primary), var(--gold-light));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .logo-text {
+            font-weight: 700;
+            font-size: 18px;
+            color: var(--text-white);
+            letter-spacing: -0.02em;
+        }
+
+        .slide-number {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* Section Label */
+        .section-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--gold-primary);
+            margin-bottom: 12px;
+        }
+
+        .section-label::before {
+            content: '';
+            width: 24px;
+            height: 2px;
+            background: var(--gold-primary);
+        }
+
+        /* Typography */
+        h1 {
+            font-size: 56px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+            margin-bottom: 16px;
+        }
+
+        h1 .gold {
+            background: linear-gradient(135deg, var(--gold-primary), var(--gold-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        h2 {
+            font-size: 36px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 32px;
+            color: var(--text-white);
+        }
+
+        h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-white);
+            margin-bottom: 16px;
+        }
+
+        h4 {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--gold-primary);
+            margin-bottom: 12px;
+        }
+
+        p {
+            font-size: 16px;
+            color: var(--text-light);
+            line-height: 1.7;
+        }
+
+        .subtitle {
+            font-size: 20px;
+            color: var(--text-muted);
+            font-weight: 400;
+            max-width: 600px;
+        }
+
+        /* Content Area */
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Grid Layouts */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .grid-6 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        /* Cards */
+        .card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 28px;
+            backdrop-filter: blur(10px);
+        }
+
+        .card-accent {
+            border-left: 3px solid var(--gold-primary);
+        }
+
+        /* Metric Cards */
+        .metric-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--gold-primary);
+            margin-bottom: 4px;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Feature Pills */
+        .pill-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin-top: 32px;
+        }
+
+        .pill {
+            background: linear-gradient(135deg, var(--accent-pink), #F472B6);
+            border-radius: 20px;
+            padding: 32px 28px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(236, 72, 153, 0.2);
+        }
+
+        .pill.blue {
+            background: linear-gradient(135deg, var(--accent-blue), #60A5FA);
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.2);
+        }
+
+        .pill.cyan {
+            background: linear-gradient(135deg, var(--accent-cyan), #22D3EE);
+            box-shadow: 0 8px 32px rgba(6, 182, 212, 0.2);
+        }
+
+        .pill .emoji {
+            font-size: 40px;
+            margin-bottom: 16px;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+        }
+
+        .pill h4 {
+            color: white;
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .pill p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* Lists */
+        .feature-list {
+            list-style: none;
+        }
+
+        .feature-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 15px;
+            color: var(--text-light);
+        }
+
+        .feature-list li:last-child {
+            border-bottom: none;
+        }
+
+        .feature-list .icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(212, 168, 83, 0.1);
+            border-radius: 8px;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        /* Code Block */
+        .code-block {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 24px;
+            font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+            font-size: 13px;
+            line-height: 1.8;
+            color: var(--gold-light);
+            overflow-x: auto;
+        }
+
+        .code-block .comment {
+            color: #6B7280;
+        }
+
+        .code-block .keyword {
+            color: #C084FC;
+        }
+
+        .code-block .string {
+            color: #34D399;
+        }
+
+        .code-block .number {
+            color: #F472B6;
+        }
+
+        /* Flow Diagram */
+        .flow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            margin: 40px 0;
+        }
+
+        .flow-box {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 28px 36px;
+            text-align: center;
+            min-width: 160px;
+        }
+
+        .flow-box.highlight {
+            background: linear-gradient(135deg, var(--gold-primary), var(--gold-dark));
+            border: none;
+            box-shadow: 0 8px 32px rgba(212, 168, 83, 0.3);
+        }
+
+        .flow-box .amount {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--text-white);
+        }
+
+        .flow-box.highlight .amount {
+            color: var(--navy-dark);
+        }
+
+        .flow-box .label {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .flow-box.highlight .label {
+            color: rgba(13, 27, 42, 0.7);
+        }
+
+        .flow-arrow {
+            font-size: 28px;
+            color: var(--gold-primary);
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-top: 16px;
+            font-size: 14px;
+        }
+
+        th {
+            background: rgba(212, 168, 83, 0.12);
+            color: var(--gold-primary);
+            font-weight: 600;
+            text-align: left;
+            padding: 16px 20px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        td {
+            padding: 14px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            color: var(--text-light);
+        }
+
+        tr:nth-child(even) td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Timeline */
+        .timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+            margin-top: 24px;
+        }
+
+        .timeline-item {
+            display: flex;
+            gap: 24px;
+            align-items: flex-start;
+        }
+
+        .timeline-marker {
+            background: linear-gradient(135deg, var(--gold-primary), var(--gold-light));
+            color: var(--navy-dark);
+            font-weight: 700;
+            font-size: 13px;
+            padding: 10px 20px;
+            border-radius: 24px;
+            white-space: nowrap;
+            box-shadow: 0 4px 16px rgba(212, 168, 83, 0.25);
+        }
+
+        .timeline-content {
+            flex: 1;
+        }
+
+        .timeline-content h4 {
+            color: var(--text-white);
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+
+        .timeline-content ul {
+            list-style: none;
+        }
+
+        .timeline-content li {
+            font-size: 14px;
+            color: var(--text-light);
+            padding: 6px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .timeline-content li .check {
+            color: var(--success);
+            font-weight: bold;
+        }
+
+        .timeline-content li .pending {
+            color: var(--warning);
+        }
+
+        /* Advantage Grid */
+        .advantage-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            margin-top: 24px;
+        }
+
+        .advantage-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 28px;
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .advantage-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(212, 168, 83, 0.12);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .advantage-text h4 {
+            color: var(--text-white);
+            margin-bottom: 6px;
+            font-size: 16px;
+        }
+
+        .advantage-text p {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* Summary Box */
+        .summary-box {
+            background: linear-gradient(135deg, var(--gold-primary), var(--gold-dark));
+            border-radius: 16px;
+            padding: 32px 40px;
+            text-align: center;
+            margin-bottom: 32px;
+            box-shadow: 0 8px 32px rgba(212, 168, 83, 0.25);
+        }
+
+        .summary-box h3 {
+            color: var(--navy-dark);
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .summary-box p {
+            color: rgba(13, 27, 42, 0.8);
+            font-size: 16px;
+        }
+
+        /* Checklist */
+        .checklist {
+            list-style: none;
+        }
+
+        .checklist li {
+            font-size: 15px;
+            color: var(--text-light);
+            padding: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .checklist li::before {
+            content: "✓";
+            width: 24px;
+            height: 24px;
+            background: rgba(34, 197, 94, 0.15);
+            color: var(--success);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .checklist.pending li::before {
+            content: "○";
+            background: rgba(234, 179, 8, 0.15);
+            color: var(--warning);
+        }
+
+        /* Title Slide Special */
+        .slide.title-slide {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .slide.title-slide h1 {
+            font-size: 72px;
+        }
+
+        .slide.title-slide .tagline {
+            font-size: 24px;
+            margin-bottom: 40px;
+        }
+
+        .slide.title-slide .badge {
+            background: linear-gradient(135deg, var(--gold-primary), var(--gold-light));
+            color: var(--navy-dark);
+            font-weight: 700;
+            font-size: 14px;
+            padding: 14px 36px;
+            border-radius: 50px;
+            display: inline-block;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 32px rgba(212, 168, 83, 0.3);
+        }
+
+        .slide.title-slide .date {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        /* Footer */
+        .slide-footer {
+            position: absolute;
+            bottom: 24px;
+            left: 64px;
+            right: 64px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: var(--text-muted);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 16px;
+        }
+
+        /* Print Optimization */
+        @media print {
+            .slide {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- SLIDE 1: Title -->
+    <div class="slide title-slide">
+        <h1><span class="gold">JUKEBOB</span></h1>
+        <p class="tagline subtitle">Your Ultimate Party Entertainment Hub</p>
+        <div class="badge">Executive Presentation</div>
+        <p class="date">Board of Directors Briefing • December 2025</p>
+    </div>
+
+    <!-- SLIDE 2: What is JukeBoB -->
+    <div class="slide">
+        <div class="slide-header">
+            <div class="logo">
+                <div class="logo-icon">🎵</div>
+                <span class="logo-text">JUKEBOB</span>
+            </div>
+            <span class="slide-number">02 / 14</span>
+        </div>
+
+        <div class="content">
+            <span class="section-label">Introduction</span>
+            <h2>What is JukeBoB?</h2>
+            <p class="subtitle" style="margin-bottom: 40px;">A comprehensive party entertainment platform combining
+                music, games, and AI DJ into one unified experience.</p>
+
+            <div class="pill-grid">
+                <div class="pill">
+                    <div class="emoji">🎵</div>
+                    <h4>Jukebox</h4>
+                    <p>Crowd-controlled music with VIP tipping & priority queue</p>
+                </div>
+                <div class="pill blue">
+                    <div class="emoji">🎮</div>
+                    <h4>Games</h4>
+                    <p>Real-time multiplayer with emoji reactions & leaderboards</p>
+                </div>
+                <div class="pill cyan">
+                    <div class="emoji">🎧</div>
+                    <h4>AI DJ</h4>
+                    <p>Intelligent dual-turntable mixing with crowd analysis</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide-footer">
+            <span>Confidential</span>
+            <span>JukeBoB AI • Executive Presentation</span>
+        </div>
+    </div>
+
+    <!-- SLIDE 3: Platform Metrics -->
+    <div class="slide">
+        <div class="slide-header">
+            <div class="logo">
+                <div class="logo-icon">🎵</div>
+                <span class="logo-text">JUKEBOB</span>
+            </div>
+            <span class="slide-number">03 / 14</span>
+        </div>
+
+        <div class="content">
+            <span class="section-label">Platform Overview</span>
+            <h2>Platform at a Glance</h2>
+
+            <div class="grid-6" style="margin-top: 40px;">
+                <div class="metric-card">
+                    <div class="metric-value">5%</div>
+                    <div class="metric-label">Platform Fee</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">3</div>
+                    <div class="metric-label">Modules</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">₹10+</div>
+                    <div class="metric-label">VIP Threshold</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">3</div>
+                    <div class="metric-label">Platforms</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">Real-time</div>
+                    <div class="metric-label">WebSocket</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">5.2K+</div>
+                    <div class="metric-label">Lines of Code</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide-footer">
+            <span>Confidential</span>
+            <span>JukeBoB AI • Executive Presentation</span>
+        </div>
+    </div>
+
+    <!-- SLIDE 4: Problem & Solution -->
+    <div class="slide">
+        <div class="slide-header">
+            <div class="logo">
+                <div class="logo-icon">🎵</div>
+                <span class="logo-text">JUKEBOB</span>
+            </div>
+            <span class="slide-number">04 / 14</span>
+        </div>
+
+        <div class="content">
+            <span class="section-label">Market Opportunity</span>
+            <h2>The Problem We Solve</h2>
+
+            <div class="grid-2" style="margin-top: 24px;">
+                <div class="card card-accent">
+                    <h3 style="color: #EF4444; margin-bottom: 20px;">❌ Pain Points</h3>
+                    <ul class="feature-list">
+                        <li><span class="icon">🎵</span> DJs decide all music without guest input</li>
+                        <li><span class="icon">😴</span> Boring waiting periods at events</li>
+                        <li><span class="icon">💸</span> Hosts miss tipping opportunities</li>
+                        <li><span class="icon">📱</span> Fragmented tools for entertainment</li>
+                    </ul>
+                </div>
+                <div class="card card-accent">
+                    <h3 style="color: #22C55E; margin-bottom: 20px;">✓ Our Solution</h3>
+                    <ul class="feature-list">
+                        <li><span class="icon">🗳️</span> Democratic music selection via tipping</li>
+                        <li><span class="icon">🎮</span> Games keep guests actively engaged</li>
+                        <li><span class="icon">💰</span> Passive income stream for hosts</li>
+                        <li><span class="icon">🎧</span> AI-powered DJ for seamless mixing</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide-footer">
+            <span>Confidential</span>
+            <span>JukeBoB AI • Executive Presentation</span>
+        </div>
+    </div>
+
+    <!-- SLIDE 5: Jukebox -->
+    <div class="slide">
+        <div class="slide-header">
+            <div class="logo">
+                <div class="logo-icon">🎵</div>
+                <span class="logo-text">JUKEBOB</span>
+            </div>
+            <span class="slide-number">05 / 14</span>
+        </div>
+
+        <div class="content">
+            <span class="section-label">Core Modules</span>
+            <h2>🎵 Jukebox — Revenue Engine</h2>
+
+            <div class="grid-2" style="margin-top: 16px;">
+                <div>
+                    <h4>VIP Queue System</h4>
+                    <ul class="feature-list">
+                        <li><span class="icon">👑</span> Tips ≥₹10 get VIP Priority placement</li>
+                        <li><span class="icon">📊</span> Sorted by tip amount (highest first)</li>
+                        <li><span class="icon">🎵</span> Regular queue: First-come-first-served</li>
+                        <li><span class="icon">🔄</span> Real-time sync for all connected users</li>
+                    </ul>
+
+                    <h4 style="margin-top: 24px;">Host Features</h4>
+                    <ul class="feature-list">
+                        <li><span class="icon">📱</span> QR code for easy session joining</li>
+                        <li><span class="icon">💵</span> Dashboard with live earnings tracker</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Queue Priority Logic</h4>
+                    <div class="code-block">
+                        <span class="comment"># VIP songs sorted by tip amount</span><br>
+                        <span class="keyword">vip_songs</span> = sorted(<br>
+                        &nbsp;&nbsp;[r <span class="keyword">for</span> r <span class="keyword">in</span> queue <span
+                            class="keyword">if</span> tip >= <span class="number">10</span>],<br>
+                        &nbsp;&nbsp;key=<span class="keyword">lambda</span> x: x.tip,<br>
+                        &nbsp;&nbsp;reverse=<span class="number">True</span><br>
+                        )<br><br>
+                        <span class="comment"># Final queue: VIP first, then regular</span><br>
+                        <span class="keyword">final_queue</span> = vip + regular
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide-footer">
+            <span>Confidential</span>
+            <span>JukeBoB AI • Executive Presentation</span>
+        </div>
+    </div>
+
+    <!-- SLIDE 6: Games -->
+    <div class="slide">
+        <div class="slide-header">
+            <div class="logo">
+                <div class="logo-icon">🎵</div>
+                <span class="logo-text">JUKEBOB</span>
+            </div>
+            <span class="slide-number">06 / 14</span>
+        </div>
+
+        <div class="content">
+            <span class="section-label">Core Modules</span>
+            <h2>🎮 Games — Engagement Engine</h2>
+
+            <div class="grid-2" style="margin-top: 16px;">
+                <div>
+                    <h4>Tic Tac Toe Features</h4>
+                    <ul class="feature-list">
+                        <li><span class="icon">⚡</span> Real-time WebSocket gameplay</li>
+                        <li><span class="icon">🏆</span> Persistent scoreboard & leaderboard</li>
+                        <li><span class="icon">🔥</span> Win streak tracking</li>
+                        <li><span class="icon">🔄</span> Turn alternation on restart</li>
+                    </ul>
+
+                    <h4 style="margin-top: 24px;">Emoji Reactions</h4>
+                    <p style="font-size: 28px; margin-top: 12px;">😂 😭 😎 😉 😘 😜 😱 👏 🌹 🏆</p>
+                </div>
+                <div>
+                    <h4>Statistics Tracked</h4>
+                    <table>
+                        <tr>
+                            <th>Metric</th>
+                            <th>Description</th>
+                        </tr>
+                        <tr>
+                            <td>Wins</td>
+                            <td>Total victories</td>
+                        </tr>
+                        <tr>
+                            <td>Losses</td>
+                            <td>Total defeats</td>
+                        </tr>
+                        <tr>
+                            <td>Draws</td>
+                            <td>Total ties</td>
+                        </tr>
+                        <tr>
+                            <td>Streak</td>
+                            <td>Current win streak</td>
+                        </tr>
+                        <tr>
+                            <td>Max Streak</td>
+                            <td>Best streak ever</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide-footer">
+            <span>Confidential</span>
+            <span>JukeBoB AI • Executive Presentation</span>
+        </div>
+    </div>
+
+    <!-- SLIDE 7: AI DJ -->
+    <div class="slide">
+        <div class="slide-header">
+            <div class="logo">
+                <div class="logo-icon">🎵</div>
+                <span class="logo-text">JUKEBOB</span>
+            </div>
+            <span class="slide-number">07 / 14</span>
+        </div>
+
+        <div class="content">
+            <span class="section-label">Core Modules</span>
+            <h2>🎧 AI DJ — Innovation Engine</h2>
+
+            <div class="grid-2" style="margin-top: 16px;">
+                <div>
+                    <h4>Dual Turntable System</h4>
+                    <ul class="feature-list">
+                        <li><span class="icon">🎛️</span> Deck A & Deck B audio players</li>
+                        <li><span class="icon">📤</span> Upload audio files directly</li>
+                        <li><span class="icon">🔊</span> Independent volume controls</li>
+                        <li><span class="icon">🔀</span> AI-powered crossfader</li>
+                    </ul>
+
+                    <h4 style="margin-top: 24px;">AI Capabilities</h4>
+                    <ul class="feature-list">
+                        <li><span class="icon">🎭</span> Crowd mood analysis</li>
+                        <li><span class="icon">⏱️</span> 3-second crossfade transitions</li>
+                        <li><span class="icon">💡</span> Smart song suggestions</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Mood Detection Algorithm</h4>
+                    <div class="code-block">
+                        <span class="keyword">def</span> analyze_mood(avg_votes):<br><br>
+                        &nbsp;&nbsp;<span class="keyword">if</span> avg_votes > <span class="number">10</span>:<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span> <span class="string">"hyped"</span>
+                        🔥<br><br>
+                        &nbsp;&nbsp;<span class="keyword">elif</span> avg_votes > <span class="number">5</span>:<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span> <span
+                            class="string">"energetic"</span> ⚡<br><br>
+                        &nbsp;&nbsp;<span class="keyword">else</span>:<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span> <span class="string">"chill"</span>
+                        😌
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide-footer">
+            <span>Confidential</span>
+            <span>JukeBoB AI • Executive Presentation</span>
+        </div>
+    </div>
+
+    <!-- SLIDE 8: Revenue Model -->
+    <div class="slide">
+        <div class="slide-header">
+            <div class="logo">
+                <div class="logo-icon">🎵</div>
+                <span class="logo-text">JUKEBOB</span>
+            </div>
+            <span class="slide-number">08 / 14</span>
+        </div>
+
+        <div class="content">
+            <span class="section-label">Monetization</span>
+            <h2>💰 Revenue Model</h2>
+
+            <div class="flow">
+                <div class="flow-box">
+                    <div class="amount">₹100</div>
+                    <div class="label">Guest Tips</div>
+                </div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-box highlight">
+                    <div class="amount">₹5</div>
+                    <div class="label">Platform Fee (5%)</div>
+                </div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-box">
+                    <div class="amount">₹95</div>
+                    <div class="label">Host Receives</div>
+                </div>
+            </div>
+
+            <div class="grid-2" style="margin-top: 24px;">
+                <div>
+                    <h4>🛡️ Consumer Protection</h4>
+                    <ul class="feature-list">
+                        <li><span class="icon">💰</span> Tips held in escrow until song plays</li>
+                        <li><span class="icon">🔄</span> Full refund if DJ skips the song</li>
+                        <li><span class="icon">❌</span> DJ gets ₹0 for unplayed requests</li>
+                        <li><span class="icon">✅</span> Automatic, no support needed</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Future Revenue Streams</h4>
+                    <table>
+                        <tr>
+                            <th>Stream</th>
+                            <th>Status</th>
+                        </tr>
+                        <tr>
+                            <td>Transaction Fees (5%)</td>
+                            <td style="color: #22C55E;">✅ Live</td>
+                        </tr>
+                        <tr>
+                            <td>Premium Features</td>
+                            <td style="color: #EAB308;">🔜 Planned</td>
+                        </tr>
+                        <tr>
+                            <td>White-label Licensing</td>
+                            <td style="color: #EAB308;">🔜 Planned</td>
+                        </tr>
+                        <tr>
+                            <td>Subscription Model</td>
+                            <td style="color: #EAB308;">🔜 Planned</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide-footer">
+            <span>Confidential</span>
+            <span>JukeBoB AI • Executive Presentation</span>
+        </div>
+    </div>
+
+    <!-- SLIDE 9: Technical Architecture -->
+    <div class="slide">
+        <div class="slide-header">
+            <div class="logo">
+                <div class="logo-icon">🎵</div>
+                <span class="logo-text">JUKEBOB</span>
+            </div>
+            <span class="slide-number">09 / 14</span>
+        </div>
+
+        <div class="content">
+            <span class="section-label">Technology</span>
+            <h2>🏗️ Technical Architecture</h2>
+
+            <div class="grid-4" style="margin-top: 32px;">
+                <div class="card card-accent">
+                    <h4>⚡ Backend</h4>
+                    <ul class="feature-list" style="border: none;">
+                        <li style="padding: 6px 0; border: none; font-size: 13px;">Python 3.11</li>
+                        <li style="padding: 6px 0; border: none; font-size: 13px;">FastAPI Framework</li>
+                        <li style="padding: 6px 0; border: none; font-size: 13px;">WebSocket Server</li>
+                        <li style="padding: 6px 0; border: none; font-size: 13px;">821 lines</li>
+                    </ul>
+                </div>
+                <div class="card card-accent">
+                    <h4>🌐 Web Frontend</h4>
+                    <ul class="feature-list" style="border: none;">
+                        <li style="padding: 6px 0; border: none; font-size: 13px;">HTML5 + CSS3</li>
+                        <li style="padding: 6px 0; border: none; font-size: 13px;">Vanilla JavaScript</li>
+                        <li style="padding: 6px 0; border: none; font-size: 13px;">Multi-theme</li>
+                        <li style="padding: 6px 0; border: none; font-size: 13px;">2,500+ lines</li>
+                    </ul>
+                </div>
+                <div class="card card-accent">
+                    <h4>📱 Mobile App</h4>
+                    <ul class="feature-list" style="border: none;">
+                        <li style="padding: 6px 0; border: none; font-size: 13px;">Flutter</li>
+                        <li style="padding: 6px 0; border: none; font-size: 13px;">Dart Language</li>
+                        <li style="padding: 6px 0; border: none; font-size: 13px;">iOS + Android</li>
+                        <li style="padding: 6px 0; border: none; font-size: 13px;">Material 3</li>
+                    </ul>
+                </div>
+                <div class="card card-accent">
+                    <h4>🔒 Security</h4>
+                    <ul class="feature-list" style="border: none;">
+                        <li style="padding: 6px 0; border: none; font-size: 13px;">SHA256 Hashing</li>
+                        <li style="padding: 6px 0; border: none; font-size: 13px;">Session Auth</li>
+                        <li style="padding: 6px 0; border: none; font-size: 13px;">CORS Protection</li>
+                        <li style="padding: 6px 0; border: none; font-size: 13px;">Input Validation</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide-footer">
+            <span>Confidential</span>
+            <span>JukeBoB AI • Executive Presentation</span>
+        </div>
+    </div>
+
+    <!-- SLIDE 10: API Overview -->
+    <div class="slide">
+        <div class="slide-header">
+            <div class="logo">
+                <div class="logo-icon">🎵</div>
+                <span class="logo-text">JUKEBOB</span>
+            </div>
+            <span class="slide-number">10 / 14</span>
+        </div>
+
+        <div class="content">
+            <span class="section-label">Technology</span>
+            <h2>🔌 API Architecture</h2>
+
+            <div class="grid-3" style="margin: 32px 0;">
+                <div class="metric-card">
+                    <div class="metric-value">30+</div>
+                    <div class="metric-label">REST Endpoints</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">1</div>
+                    <div class="metric-label">WebSocket Channel</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">50+</div>
+                    <div class="metric-label">Functions</div>
+                </div>
+            </div>
+
+            <table>
+                <tr>
+                    <th>Module</th>
+                    <th>Endpoints</th>
+                    <th>Key Functions</th>
+                </tr>
+                <tr>
+                    <td>Sessions</td>
+                    <td>4</td>
+                    <td>Create, Join, Resume, Get</td>
+                </tr>
+                <tr>
+                    <td>Requests</td>
+                    <td>5</td>
+                    <td>Submit, Complete, Skip, Tip, List</td>
+                </tr>
+                <tr>
+                    <td>Games</td>
+                    <td>7</td>
+                    <td>Create, Join, Move, Emoji, Restart</td>
+                </tr>
+                <tr>
+                    <td>Payments</td>
+                    <td>3</td>
+                    <td>Checkout, Transaction, Revenue</td>
+                </tr>
+                <tr>
+                    <td>AI DJ</td>
+                    <td>3</td>
+                    <td>Enable, Playlist, Next Track</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="slide-footer">
+            <span>Confidential</span>
+            <span>JukeBoB AI • Executive Presentation</span>
+        </div>
+    </div>
+
+    <!-- SLIDE 11: Roadmap -->
+    <div class="slide">
+        <div class="slide-header">
+            <div class="logo">
+                <div class="logo-icon">🎵</div>
+                <span class="logo-text">JUKEBOB</span>
+            </div>
+            <span class="slide-number">11 / 14</span>
+        </div>
+
+        <div class="content">
+            <span class="section-label">Future</span>
+            <h2>🚀 Growth Roadmap</h2>
+
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-marker">Phase 1 • Q1</div>
+                    <div class="timeline-content">
+                        <h4>Production Ready</h4>
+                        <ul>
+                            <li><span class="check">✓</span> Supabase database integration</li>
+                            <li><span class="check">✓</span> Real payment gateway (Stripe + UPI)</li>
+                            <li><span class="check">✓</span> User registration & authentication</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-marker">Phase 2 • Q2</div>
+                    <div class="timeline-content">
+                        <h4>Feature Enhancement</h4>
+                        <ul>
+                            <li><span class="pending">○</span> More games (Mafia, Trivia)</li>
+                            <li><span class="pending">○</span> Advanced AI DJ with beat matching</li>
+                            <li><span class="pending">○</span> Push notifications</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-marker">Phase 3 • Q3-Q4</div>
+                    <div class="timeline-content">
+                        <h4>Scale</h4>
+                        <ul>
+                            <li><span class="pending">○</span> Kubernetes deployment</li>
+                            <li><span class="pending">○</span> Analytics dashboard</li>
+                            <li><span class="pending">○</span> White-label solution</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide-footer">
+            <span>Confidential</span>
+            <span>JukeBoB AI • Executive Presentation</span>
+        </div>
+    </div>
+
+    <!-- SLIDE 12: Competitive Advantages -->
+    <div class="slide">
+        <div class="slide-header">
+            <div class="logo">
+                <div class="logo-icon">🎵</div>
+                <span class="logo-text">JUKEBOB</span>
+            </div>
+            <span class="slide-number">12 / 14</span>
+        </div>
+
+        <div class="content">
+            <span class="section-label">Strategy</span>
+            <h2>🏆 Competitive Advantages</h2>
+
+            <div class="advantage-grid">
+                <div class="advantage-card">
+                    <div class="advantage-icon">🥇</div>
+                    <div class="advantage-text">
+                        <h4>First-Mover Advantage</h4>
+                        <p>No direct competitors in the integrated party entertainment space</p>
+                    </div>
+                </div>
+                <div class="advantage-card">
+                    <div class="advantage-icon">🧩</div>
+                    <div class="advantage-text">
+                        <h4>Three-in-One Platform</h4>
+                        <p>Music, games, and DJ combined — reduces user friction significantly</p>
+                    </div>
+                </div>
+                <div class="advantage-card">
+                    <div class="advantage-icon">⚡</div>
+                    <div class="advantage-text">
+                        <h4>Real-Time Technology</h4>
+                        <p>WebSocket creates sticky, highly engaging user experiences</p>
+                    </div>
+                </div>
+                <div class="advantage-card">
+                    <div class="advantage-icon">💰</div>
+                    <div class="advantage-text">
+                        <h4>Day-1 Revenue</h4>
+                        <p>5% transaction fee built into platform from launch date</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide-footer">
+            <span>Confidential</span>
+            <span>JukeBoB AI • Executive Presentation</span>
+        </div>
+    </div>
+
+    <!-- SLIDE 13: Summary -->
+    <div class="slide">
+        <div class="slide-header">
+            <div class="logo">
+                <div class="logo-icon">🎵</div>
+                <span class="logo-text">JUKEBOB</span>
+            </div>
+            <span class="slide-number">13 / 14</span>
+        </div>
+
+        <div class="content">
+            <span class="section-label">Summary</span>
+            <h2>📋 Key Takeaways</h2>
+
+            <div class="summary-box">
+                <h3>JukeBoB is Production-Ready</h3>
+                <p>Fully functional MVP with a clear path to scale</p>
+            </div>
+
+            <div class="grid-2">
+                <div>
+                    <h4 style="color: #22C55E;">✅ What We Have</h4>
+                    <ul class="checklist">
+                        <li>Web + iOS + Android applications</li>
+                        <li>Three entertainment modules</li>
+                        <li>Real-time synchronization</li>
+                        <li>Built-in 5% monetization</li>
+                        <li>VIP priority queue system</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 style="color: #EAB308;">🔜 What's Next</h4>
+                    <ul class="checklist pending">
+                        <li>Payment gateway integration</li>
+                        <li>Database persistence</li>
+                        <li>User authentication</li>
+                        <li>More games & features</li>
+                        <li>Scale infrastructure</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide-footer">
+            <span>Confidential</span>
+            <span>JukeBoB AI • Executive Presentation</span>
+        </div>
+    </div>
+
+    <!-- SLIDE 14: Thank You -->
+    <div class="slide title-slide">
+        <h1><span class="gold">Thank You</span></h1>
+        <p class="tagline subtitle">Questions & Discussion</p>
+
+        <div style="margin-top: 48px;">
+            <p style="color: var(--gold-primary); font-size: 22px; font-weight: 600;">JukeBoB AI</p>
+            <p style="color: var(--text-muted); font-size: 16px; margin-top: 8px;">Your Ultimate Party Entertainment Hub
+            </p>
+        </div>
+
+        <div class="badge" style="margin-top: 40px;">December 2025</div>
+    </div>
+
+</body>
+
+</html>

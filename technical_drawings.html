@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JukeBoB AI - Technical Architecture</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 0;
+        }
+
+        :root {
+            --gold: #C9A227;
+            --gold-light: #E5C253;
+            --navy: #0A0E17;
+            --navy-light: #141B2D;
+            --navy-mid: #1E2A45;
+            --white: #FFFFFF;
+            --gray-100: #F7F8FA;
+            --gray-300: #D1D5DB;
+            --gray-500: #6B7280;
+            --gray-700: #374151;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--navy);
+            color: var(--white);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Page Layout */
+        .page {
+            width: 100%;
+            min-height: 100vh;
+            padding: 40px 48px;
+            background: linear-gradient(180deg, var(--navy) 0%, var(--navy-light) 100%);
+            position: relative;
+            page-break-after: always;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Decorative Elements */
+        .page::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--gold), var(--gold-light), var(--gold));
+        }
+
+        .page::after {
+            content: '';
+            position: absolute;
+            top: 40px;
+            right: 40px;
+            width: 120px;
+            height: 120px;
+            background: radial-gradient(circle, rgba(201, 162, 39, 0.08) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            box-shadow: 0 4px 12px rgba(201, 162, 39, 0.3);
+        }
+
+        .brand-text h1 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--white);
+            letter-spacing: -0.01em;
+        }
+
+        .brand-text span {
+            font-size: 11px;
+            color: var(--gray-500);
+            font-weight: 500;
+        }
+
+        .page-info {
+            text-align: right;
+        }
+
+        .page-num {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--gold);
+        }
+
+        .page-total {
+            font-size: 12px;
+            color: var(--gray-500);
+        }
+
+        /* Content */
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Section Header */
+        .section-header {
+            margin-bottom: 24px;
+        }
+
+        .section-tag {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 8px;
+            padding: 4px 12px;
+            background: rgba(201, 162, 39, 0.1);
+            border-radius: 4px;
+        }
+
+        .section-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--white);
+            letter-spacing: -0.02em;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .section-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: var(--gold);
+            color: var(--navy);
+            font-weight: 800;
+            font-size: 18px;
+            border-radius: 10px;
+        }
+
+        .section-desc {
+            margin-top: 12px;
+            font-size: 14px;
+            color: var(--gray-500);
+            max-width: 700px;
+            line-height: 1.6;
+        }
+
+        /* Diagram Container */
+        .diagram-wrap {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 24px 0;
+        }
+
+        .diagram {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 32px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Footer */
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            font-size: 11px;
+            color: var(--gray-500);
+        }
+
+        .footer-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .confidential {
+            background: rgba(201, 162, 39, 0.15);
+            color: var(--gold);
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 10px;
+            letter-spacing: 0.05em;
+        }
+
+        /* Title Page */
+        .title-page {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .title-page .logo-large {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            margin-bottom: 32px;
+            box-shadow: 0 16px 48px rgba(201, 162, 39, 0.4);
+        }
+
+        .title-page h1 {
+            font-size: 52px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            margin-bottom: 12px;
+        }
+
+        .title-page h1 span {
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .title-page .subtitle {
+            font-size: 20px;
+            color: var(--gray-500);
+            font-weight: 400;
+            margin-bottom: 48px;
+        }
+
+        .title-page .badge {
+            display: inline-block;
+            background: var(--gold);
+            color: var(--navy);
+            font-weight: 700;
+            font-size: 13px;
+            padding: 12px 28px;
+            border-radius: 50px;
+            margin-bottom: 20px;
+        }
+
+        .title-page .meta {
+            font-size: 13px;
+            color: var(--gray-500);
+        }
+
+        /* TOC */
+        .toc-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 32px;
+        }
+
+        .toc-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            padding: 14px 18px;
+            transition: all 0.2s;
+        }
+
+        .toc-item:hover {
+            background: rgba(201, 162, 39, 0.08);
+            border-color: rgba(201, 162, 39, 0.2);
+        }
+
+        .toc-num {
+            width: 28px;
+            height: 28px;
+            background: rgba(201, 162, 39, 0.15);
+            color: var(--gold);
+            font-weight: 700;
+            font-size: 12px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .toc-text {
+            font-size: 13px;
+            color: var(--gray-300);
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 24px 0;
+            font-size: 13px;
+        }
+
+        th {
+            background: rgba(201, 162, 39, 0.12);
+            color: var(--gold);
+            font-weight: 600;
+            text-align: left;
+            padding: 14px 18px;
+            border-bottom: 2px solid rgba(201, 162, 39, 0.3);
+        }
+
+        td {
+            padding: 12px 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            color: var(--gray-300);
+        }
+
+        tr:nth-child(even) td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* Print */
+        .print-btn {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            background: var(--gold);
+            color: var(--navy);
+            border: none;
+            padding: 14px 28px;
+            font-size: 14px;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            font-family: inherit;
+            box-shadow: 0 8px 24px rgba(201, 162, 39, 0.4);
+            z-index: 1000;
+            transition: transform 0.2s;
+        }
+
+        .print-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        @media print {
+            .print-btn {
+                display: none;
+            }
+
+            .page {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <button class="print-btn" onclick="window.print()">📄 Save as PDF</button>
+
+    <!-- Cover Page -->
+    <div class="page title-page">
+        <div class="logo-large">🎵</div>
+        <h1><span>JUKEBOB</span></h1>
+        <p class="subtitle">Technical Architecture Documentation</p>
+        <div class="badge">SYSTEM DESIGN</div>
+        <p class="meta">Version 1.0 • December 2025</p>
+    </div>
+
+    <!-- Table of Contents -->
+    <div class="page">
+        <div class="header">
+            <div class="brand">
+                <div class="brand-icon">🎵</div>
+                <div class="brand-text">
+                    <h1>JUKEBOB</h1>
+                    <span>Technical Documentation</span>
+                </div>
+            </div>
+            <div class="page-info">
+                <div class="page-num">02</div>
+                <div class="page-total">of 15</div>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="section-header">
+                <div class="section-tag">Overview</div>
+                <h2 class="section-title">Table of Contents</h2>
+            </div>
+
+            <div class="toc-grid">
+                <div class="toc-item">
+                    <div class="toc-num">01</div>
+                    <div class="toc-text">System Architecture Overview</div>
+                </div>
+                <div class="toc-item">
+                    <div class="toc-num">02</div>
+                    <div class="toc-text">Component Diagram</div>
+                </div>
+                <div class="toc-item">
+                    <div class="toc-num">03</div>
+                    <div class="toc-text">Games Module</div>
+                </div>
+                <div class="toc-item">
+                    <div class="toc-num">04</div>
+                    <div class="toc-text">AI DJ Module</div>
+                </div>
+                <div class="toc-item">
+                    <div class="toc-num">05</div>
+                    <div class="toc-text">Payment Flow</div>
+                </div>
+                <div class="toc-item">
+                    <div class="toc-num">06</div>
+                    <div class="toc-text">WebSocket Flow</div>
+                </div>
+                <div class="toc-item">
+                    <div class="toc-num">07</div>
+                    <div class="toc-text">Data Model</div>
+                </div>
+                <div class="toc-item">
+                    <div class="toc-num">08</div>
+                    <div class="toc-text">API Endpoints</div>
+                </div>
+                <div class="toc-item">
+                    <div class="toc-num">09</div>
+                    <div class="toc-text">Project Structure</div>
+                </div>
+                <div class="toc-item">
+                    <div class="toc-num">10</div>
+                    <div class="toc-text">Deployment</div>
+                </div>
+                <div class="toc-item">
+                    <div class="toc-num">11</div>
+                    <div class="toc-text">UI Architecture</div>
+                </div>
+                <div class="toc-item">
+                    <div class="toc-num">12</div>
+                    <div class="toc-text">Security</div>
+                </div>
+                <div class="toc-item">
+                    <div class="toc-num">13</div>
+                    <div class="toc-text">State Management</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div class="footer-left">
+                <span class="confidential">CONFIDENTIAL</span>
+            </div>
+            <span>JukeBoB AI • Technical Architecture Documentation</span>
+        </div>
+    </div>
+
+    <!-- 1. System Architecture -->
+    <div class="page">
+        <div class="header">
+            <div class="brand">
+                <div class="brand-icon">🎵</div>
+                <div class="brand-text">
+                    <h1>JUKEBOB</h1>
+                    <span>Technical Documentation</span>
+                </div>
+            </div>
+            <div class="page-info">
+                <div class="page-num">03</div>
+                <div class="page-total">of 15</div>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="section-header">
+                <div class="section-tag">Architecture</div>
+                <h2 class="section-title"><span class="section-num">01</span>System Architecture</h2>
+                <p class="section-desc">Full-stack overview showing client applications, API gateway, core services, and
+                    data layer.</p>
+            </div>
+
+            <div class="diagram-wrap">
+                <div class="diagram">
+                    <div class="mermaid">
+                        graph TB
+                        subgraph Clients["Client Layer"]
+                        WEB["🌐 Web Frontend"]
+                        APP["📱 Flutter App"]
+                        end
+
+                        subgraph Gateway["API Gateway"]
+                        API["⚡ FastAPI"]
+                        WS["🔌 WebSocket"]
+                        end
+
+                        subgraph Services["Core Services"]
+                        JB["🎵 Jukebox"]
+                        GM["🎮 Games"]
+                        DJ["🎧 AI DJ"]
+                        PAY["💰 Payments"]
+                        end
+
+                        subgraph Data["Data Layer"]
+                        MEM["📦 In-Memory"]
+                        DB["🗄️ Supabase"]
+                        end
+
+                        WEB <--> API
+                            APP <--> API
+                                API <--> WS
+                                    API --> JB
+                                    API --> GM
+                                    API --> DJ
+                                    API --> PAY
+                                    JB --> MEM
+                                    GM --> MEM
+                                    PAY --> MEM
+                                    MEM -.-> DB
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div class="footer-left">
+                <span class="confidential">CONFIDENTIAL</span>
+            </div>
+            <span>JukeBoB AI • Technical Architecture Documentation</span>
+        </div>
+    </div>
+
+    <!-- 2. Component Diagram -->
+    <div class="page">
+        <div class="header">
+            <div class="brand">
+                <div class="brand-icon">🎵</div>
+                <div class="brand-text">
+                    <h1>JUKEBOB</h1>
+                    <span>Technical Documentation</span>
+                </div>
+            </div>
+            <div class="page-info">
+                <div class="page-num">04</div>
+                <div class="page-total">of 15</div>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="section-header">
+                <div class="section-tag">Architecture</div>
+                <h2 class="section-title"><span class="section-num">02</span>Component Diagram</h2>
+                <p class="section-desc">Platform sections with dedicated themes and backend service connections.</p>
+            </div>
+
+            <div class="diagram-wrap">
+                <div class="diagram">
+                    <div class="mermaid">
+                        graph LR
+                        subgraph Frontend["Frontend Apps"]
+                        WA["Web App"]
+                        FA["Flutter App"]
+                        end
+
+                        subgraph Sections["Platform Sections"]
+                        JK["🎵 Jukebox<br />Dark Neon"]
+                        GS["🎮 Games<br />Light Theme"]
+                        AD["🎧 AI DJ<br />Tech Theme"]
+                        end
+
+                        subgraph Backend["Backend Services"]
+                        SM["Session Mgr"]
+                        QM["Queue Mgr"]
+                        PP["Payment Proc"]
+                        WM["WebSocket Mgr"]
+                        GE["Game Engine"]
+                        AI["AI DJ Agent"]
+                        end
+
+                        WA --> JK & GS & AD
+                        FA --> JK & GS & AD
+                        JK --> SM & QM & PP
+                        GS --> WM & GE
+                        AD --> AI
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div class="footer-left">
+                <span class="confidential">CONFIDENTIAL</span>
+            </div>
+            <span>JukeBoB AI • Technical Architecture Documentation</span>
+        </div>
+    </div>
+
+    <!-- 4. Games Module -->
+    <div class="page">
+        <div class="header">
+            <div class="brand">
+                <div class="brand-icon">🎵</div>
+                <div class="brand-text">
+                    <h1>JUKEBOB</h1>
+                    <span>Technical Documentation</span>
+                </div>
+            </div>
+            <div class="page-info">
+                <div class="page-num">05</div>
+                <div class="page-total">of 15</div>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="section-header">
+                <div class="section-tag">Modules</div>
+                <h2 class="section-title"><span class="section-num">03</span>Games Module</h2>
+                <p class="section-desc">Real-time game engine with WebSocket sync and emoji reactions.</p>
+            </div>
+
+            <div class="diagram-wrap">
+                <div class="diagram">
+                    <div class="mermaid">
+                        flowchart LR
+                        subgraph Room["Room"]
+                        CR["Create"] --> JR["Join"]
+                        end
+
+                        subgraph Engine["Engine"]
+                        WS["WS"] <--> STATE["State"] <--> BC["Broadcast"]
+                                end
+
+                                subgraph Game["Game"]
+                                BOARD["Board"] --> TURN["Turn"] --> WIN["Win"]
+                                BOARD --> EMO["😂"]
+                                end
+
+                                subgraph Score["Score"]
+                                SC["Points"] --> LB["Leader"]
+                                end
+
+                                Room --> Engine --> Game --> Score
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div class="footer-left">
+                <span class="confidential">CONFIDENTIAL</span>
+            </div>
+            <span>JukeBoB AI • Technical Architecture Documentation</span>
+        </div>
+    </div>
+
+    <!-- 5. AI DJ Module -->
+    <div class="page">
+        <div class="header">
+            <div class="brand">
+                <div class="brand-icon">🎵</div>
+                <div class="brand-text">
+                    <h1>JUKEBOB</h1>
+                    <span>Technical Documentation</span>
+                </div>
+            </div>
+            <div class="page-info">
+                <div class="page-num">06</div>
+                <div class="page-total">of 15</div>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="section-header">
+                <div class="section-tag">Modules</div>
+                <h2 class="section-title"><span class="section-num">04</span>AI DJ Module</h2>
+                <p class="section-desc">Dual turntable system with AI-powered crossfading and mood analysis.</p>
+            </div>
+
+            <div class="diagram-wrap">
+                <div class="diagram">
+                    <div class="mermaid">
+                        flowchart LR
+                        subgraph Input["Audio Input"]
+                        UA["Upload A"]
+                        UB["Upload B"]
+                        end
+
+                        subgraph Decks["Turntables"]
+                        DA["🎛️ Deck A"]
+                        DB["🎛️ Deck B"]
+                        end
+
+                        subgraph Controls["Controls"]
+                        PLAY["▶️ Play"]
+                        VOL["🔊 Volume"]
+                        MIX["🔀 Mix"]
+                        end
+
+                        subgraph AI["AI Agent"]
+                        AGENT["AI DJ"]
+                        FADE["Crossfade"]
+                        PL["Playlist"]
+                        end
+
+                        UA --> DA --> PLAY
+                        UB --> DB --> PLAY
+                        DA & DB --> VOL
+                        PLAY --> MIX --> AGENT
+                        AGENT --> FADE & PL
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div class="footer-left">
+                <span class="confidential">CONFIDENTIAL</span>
+            </div>
+            <span>JukeBoB AI • Technical Architecture Documentation</span>
+        </div>
+    </div>
+
+    <!-- 6. Payment Flow -->
+    <div class="page">
+        <div class="header">
+            <div class="brand">
+                <div class="brand-icon">🎵</div>
+                <div class="brand-text">
+                    <h1>JUKEBOB</h1>
+                    <span>Technical Documentation</span>
+                </div>
+            </div>
+            <div class="page-info">
+                <div class="page-num">07</div>
+                <div class="page-total">of 15</div>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="section-header">
+                <div class="section-tag">Flows</div>
+                <h2 class="section-title"><span class="section-num">05</span>Payment Flow</h2>
+                <p class="section-desc">Transaction flow with escrow protection. Tips refunded if song not played.</p>
+            </div>
+
+            <div class="diagram-wrap">
+                <div class="diagram">
+                    <div class="mermaid">
+                        sequenceDiagram
+                        participant G as Guest
+                        participant F as Frontend
+                        participant B as Backend
+                        participant P as Payment
+                        participant H as Host
+
+                        G->>F: Song + Tip ₹X
+                        F->>B: Submit Request
+                        B->>B: Hold in Escrow
+                        B-->>F: Confirmed
+
+                        alt Song Played ✅
+                        H->>F: Mark Played
+                        F->>B: Complete
+                        B->>B: Calc 5% Fee
+                        H->>F: Checkout
+                        B->>P: Pay ₹(X-5%)
+                        P-->>H: Received
+                        else Song Skipped 🔄
+                        H->>F: Skip Song
+                        F->>B: Cancel
+                        B->>G: Refund ₹X
+                        Note over H: DJ Gets ₹0
+                        end
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div class="footer-left">
+                <span class="confidential">CONFIDENTIAL</span>
+            </div>
+            <span>JukeBoB AI • Technical Architecture Documentation</span>
+        </div>
+    </div>
+
+    <!-- 7. WebSocket Flow -->
+    <div class="page">
+        <div class="header">
+            <div class="brand">
+                <div class="brand-icon">🎵</div>
+                <div class="brand-text">
+                    <h1>JUKEBOB</h1>
+                    <span>Technical Documentation</span>
+                </div>
+            </div>
+            <div class="page-info">
+                <div class="page-num">08</div>
+                <div class="page-total">of 15</div>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="section-header">
+                <div class="section-tag">Flows</div>
+                <h2 class="section-title"><span class="section-num">06</span>WebSocket Flow</h2>
+                <p class="section-desc">Real-time synchronization keeping all connected clients in sync.</p>
+            </div>
+
+            <div class="diagram-wrap">
+                <div class="diagram">
+                    <div class="mermaid">
+                        sequenceDiagram
+                        participant C1 as Client 1
+                        participant C2 as Client 2
+                        participant WS as WebSocket
+                        participant CM as ConnMgr
+                        participant SS as Store
+
+                        C1->>WS: Connect
+                        WS->>CM: Register
+                        CM->>SS: Add
+
+                        C2->>WS: Connect
+                        WS->>CM: Register
+                        CM->>SS: Add
+
+                        C1->>WS: Action
+                        WS->>SS: Update
+                        WS->>CM: Broadcast
+                        CM->>C1: Sync
+                        CM->>C2: Sync
+
+                        Note over C1,SS: All Synchronized
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div class="footer-left">
+                <span class="confidential">CONFIDENTIAL</span>
+            </div>
+            <span>JukeBoB AI • Technical Architecture Documentation</span>
+        </div>
+    </div>
+
+    <!-- 8. Data Model -->
+    <div class="page">
+        <div class="header">
+            <div class="brand">
+                <div class="brand-icon">🎵</div>
+                <div class="brand-text">
+                    <h1>JUKEBOB</h1>
+                    <span>Technical Documentation</span>
+                </div>
+            </div>
+            <div class="page-info">
+                <div class="page-num">09</div>
+                <div class="page-total">of 15</div>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="section-header">
+                <div class="section-tag">Data</div>
+                <h2 class="section-title"><span class="section-num">07</span>Data Model</h2>
+                <p class="section-desc">Entity relationships for Sessions, Requests, Games, and Payments.</p>
+            </div>
+
+            <div class="diagram-wrap">
+                <div class="diagram">
+                    <div class="mermaid">
+                        erDiagram
+                        SESSION {
+                        string id PK
+                        string name
+                        string password_hash
+                        float earnings
+                        }
+
+                        REQUEST {
+                        string id PK
+                        string session_id FK
+                        string song
+                        float tip
+                        string status
+                        }
+
+                        GAME {
+                        string code PK
+                        string type
+                        json board
+                        string turn
+                        }
+
+                        PAYMENT {
+                        string id PK
+                        string session_id FK
+                        float amount
+                        float fee
+                        }
+
+                        SESSION ||--o{ REQUEST : has
+                        SESSION ||--o{ PAYMENT : has
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div class="footer-left">
+                <span class="confidential">CONFIDENTIAL</span>
+            </div>
+            <span>JukeBoB AI • Technical Architecture Documentation</span>
+        </div>
+    </div>
+
+    <!-- 9. API Endpoints -->
+    <div class="page">
+        <div class="header">
+            <div class="brand">
+                <div class="brand-icon">🎵</div>
+                <div class="brand-text">
+                    <h1>JUKEBOB</h1>
+                    <span>Technical Documentation</span>
+                </div>
+            </div>
+            <div class="page-info">
+                <div class="page-num">10</div>
+                <div class="page-total">of 15</div>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="section-header">
+                <div class="section-tag">API</div>
+                <h2 class="section-title"><span class="section-num">08</span>API Endpoints</h2>
+                <p class="section-desc">REST API endpoints organized by service category.</p>
+            </div>
+
+            <div class="diagram-wrap">
+                <div class="diagram">
+                    <div class="mermaid">
+                        graph TD
+                        subgraph Sessions["Session APIs"]
+                        S1["POST /sessions/create"]
+                        S2["POST /sessions/join"]
+                        S3["GET /sessions/{id}"]
+                        end
+
+                        subgraph Requests["Request APIs"]
+                        R1["POST /requests/submit"]
+                        R2["POST /requests/complete"]
+                        R3["GET /requests/{id}"]
+                        end
+
+                        subgraph Games["Game APIs"]
+                        G1["POST /games/create"]
+                        G2["POST /games/move"]
+                        G3["POST /games/emoji"]
+                        end
+
+                        subgraph Payments["Payment APIs"]
+                        P1["POST /checkout"]
+                        P2["GET /revenue"]
+                        end
+
+                        subgraph DJ["AI DJ APIs"]
+                        D1["POST /dj/enable"]
+                        D2["GET /dj/playlist"]
+                        end
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div class="footer-left">
+                <span class="confidential">CONFIDENTIAL</span>
+            </div>
+            <span>JukeBoB AI • Technical Architecture Documentation</span>
+        </div>
+    </div>
+
+    <!-- 10. Project Structure -->
+    <div class="page">
+        <div class="header">
+            <div class="brand">
+                <div class="brand-icon">🎵</div>
+                <div class="brand-text">
+                    <h1>JUKEBOB</h1>
+                    <span>Technical Documentation</span>
+                </div>
+            </div>
+            <div class="page-info">
+                <div class="page-num">11</div>
+                <div class="page-total">of 15</div>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="section-header">
+                <div class="section-tag">Structure</div>
+                <h2 class="section-title"><span class="section-num">09</span>Project Structure</h2>
+                <p class="section-desc">File organization across backend, web frontend, and Flutter app.</p>
+            </div>
+
+            <div class="diagram-wrap">
+                <div class="diagram">
+                    <div class="mermaid">
+                        graph TB
+                        subgraph Root["JukeBoB_AI/"]
+                        subgraph BE["backend/"]
+                        M["main.py"]
+                        AI["ai_dj.py"]
+                        end
+
+                        subgraph FE["frontend/"]
+                        HTML["index.html"]
+                        CSS["styles.css"]
+                        JS["app.js"]
+                        end
+
+                        subgraph FL["flutter_app/"]
+                        MAIN["main.dart"]
+                        JK["jukebox_screen"]
+                        GM["games_screen"]
+                        DJ["aidj_screen"]
+                        end
+                        end
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div class="footer-left">
+                <span class="confidential">CONFIDENTIAL</span>
+            </div>
+            <span>JukeBoB AI • Technical Architecture Documentation</span>
+        </div>
+    </div>
+
+    <!-- 11. Deployment -->
+    <div class="page">
+        <div class="header">
+            <div class="brand">
+                <div class="brand-icon">🎵</div>
+                <div class="brand-text">
+                    <h1>JUKEBOB</h1>
+                    <span>Technical Documentation</span>
+                </div>
+            </div>
+            <div class="page-info">
+                <div class="page-num">12</div>
+                <div class="page-total">of 15</div>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="section-header">
+                <div class="section-tag">Infrastructure</div>
+                <h2 class="section-title"><span class="section-num">10</span>Deployment</h2>
+                <p class="section-desc">Production deployment with external service integrations.</p>
+            </div>
+
+            <div class="diagram-wrap">
+                <div class="diagram">
+                    <div class="mermaid">
+                        flowchart TB
+                        subgraph Clients["Clients"]
+                        BR["🌐 Browser"]
+                        MB["📱 Mobile"]
+                        end
+
+                        subgraph Server["Server"]
+                        UV["Uvicorn"]
+                        FA["FastAPI"]
+                        ST["Static"]
+                        end
+
+                        subgraph External["External"]
+                        STR["Stripe"]
+                        SUP["Supabase"]
+                        UPI["UPI"]
+                        end
+
+                        BR & MB <-->|HTTPS| UV
+                            UV --> FA --> ST
+                            FA -.->|Future| STR & SUP & UPI
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div class="footer-left">
+                <span class="confidential">CONFIDENTIAL</span>
+            </div>
+            <span>JukeBoB AI • Technical Architecture Documentation</span>
+        </div>
+    </div>
+
+    <!-- 12. UI Architecture -->
+    <div class="page">
+        <div class="header">
+            <div class="brand">
+                <div class="brand-icon">🎵</div>
+                <div class="brand-text">
+                    <h1>JUKEBOB</h1>
+                    <span>Technical Documentation</span>
+                </div>
+            </div>
+            <div class="page-info">
+                <div class="page-num">13</div>
+                <div class="page-total">of 15</div>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="section-header">
+                <div class="section-tag">Design</div>
+                <h2 class="section-title"><span class="section-num">11</span>UI Architecture</h2>
+                <p class="section-desc">Visual design system with brand identity and themes.</p>
+            </div>
+
+            <div class="diagram-wrap">
+                <div class="diagram">
+                    <div class="mermaid">
+                        graph TB
+                        subgraph Brand["Brand"]
+                        B["JUKEBOB<br />#F5D547"]
+                        end
+
+                        subgraph Themes["Themes"]
+                        T1["🎵 Dark Neon"]
+                        T2["🎮 Light Fun"]
+                        T3["🎧 Tech"]
+                        end
+
+                        subgraph UI["UI Elements"]
+                        NAV["Navigation"]
+                        FORM["Forms"]
+                        BTN["Buttons"]
+                        CARD["Cards"]
+                        end
+
+                        B --> T1 & T2 & T3
+                        T1 & T2 & T3 --> NAV --> FORM & BTN & CARD
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div class="footer-left">
+                <span class="confidential">CONFIDENTIAL</span>
+            </div>
+            <span>JukeBoB AI • Technical Architecture Documentation</span>
+        </div>
+    </div>
+
+    <!-- 13. Security -->
+    <div class="page">
+        <div class="header">
+            <div class="brand">
+                <div class="brand-icon">🎵</div>
+                <div class="brand-text">
+                    <h1>JUKEBOB</h1>
+                    <span>Technical Documentation</span>
+                </div>
+            </div>
+            <div class="page-info">
+                <div class="page-num">14</div>
+                <div class="page-total">of 15</div>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="section-header">
+                <div class="section-tag">Security</div>
+                <h2 class="section-title"><span class="section-num">12</span>Security Architecture</h2>
+                <p class="section-desc">Authentication, session security, and data protection.</p>
+            </div>
+
+            <div class="diagram-wrap">
+                <div class="diagram">
+                    <div class="mermaid">
+                        flowchart TB
+                        subgraph Auth["Authentication"]
+                        PWD["Password"]
+                        HASH["SHA256"]
+                        VER["Verify"]
+                        end
+
+                        subgraph Session["Session"]
+                        TOK["Token"]
+                        LOC["Storage"]
+                        RES["Resume"]
+                        end
+
+                        subgraph Protection["Protection"]
+                        VAL["Validate"]
+                        SAN["Sanitize"]
+                        CORS["CORS"]
+                        end
+
+                        PWD --> HASH --> VER
+                        VER -->|OK| TOK --> LOC --> RES
+                        VER --> VAL --> SAN --> CORS
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div class="footer-left">
+                <span class="confidential">CONFIDENTIAL</span>
+            </div>
+            <span>JukeBoB AI • Technical Architecture Documentation</span>
+        </div>
+    </div>
+
+    <!-- 14. State Management -->
+    <div class="page">
+        <div class="header">
+            <div class="brand">
+                <div class="brand-icon">🎵</div>
+                <div class="brand-text">
+                    <h1>JUKEBOB</h1>
+                    <span>Technical Documentation</span>
+                </div>
+            </div>
+            <div class="page-info">
+                <div class="page-num">15</div>
+                <div class="page-total">of 15</div>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="section-header">
+                <div class="section-tag">Navigation</div>
+                <h2 class="section-title"><span class="section-num">13</span>State Management</h2>
+                <p class="section-desc">User navigation flow through all platform sections.</p>
+            </div>
+
+            <div class="diagram-wrap">
+                <div class="diagram">
+                    <div class="mermaid">
+                        stateDiagram-v2
+                        [*] --> Home
+                        Home --> Jukebox
+                        Home --> Games
+                        Home --> AIDJ
+
+                        state Jukebox {
+                        [*] --> JBHome
+                        JBHome --> Create
+                        JBHome --> Join
+                        Create --> Host
+                        Join --> Guest
+                        Host --> Checkout
+                        }
+
+                        state Games {
+                        [*] --> GHome
+                        GHome --> CreateRoom
+                        GHome --> JoinRoom
+                        CreateRoom --> Board
+                        JoinRoom --> Board
+                        Board --> Over
+                        Over --> Board
+                        }
+
+                        state AIDJ {
+                        [*] --> Interface
+                        Interface --> Mix
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div class="footer-left">
+                <span class="confidential">CONFIDENTIAL</span>
+            </div>
+            <span>JukeBoB AI • Technical Architecture Documentation</span>
+        </div>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#C9A227',
+                primaryTextColor: '#0A0E17',
+                primaryBorderColor: '#B8923E',
+                lineColor: '#6B7280',
+                secondaryColor: '#E5C253',
+                tertiaryColor: '#F7F8FA',
+                fontFamily: 'Inter'
+            },
+            flowchart: { curve: 'basis', htmlLabels: true },
+            sequence: { mirrorActors: false }
+        });
+    </script>
+</body>
+
+</html>

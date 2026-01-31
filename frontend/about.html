@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us | JukeBob</title>
+    <link rel="icon" type="image/png" href="icon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --brand-yellow: #FFD93D;
+            --brand-orange: #FF9F1C;
+            --brand-dark: #0a0a0f;
+            --brand-black: #1A1A1A;
+            --pure-white: #FFFFFF;
+            --gray-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--brand-dark);
+            color: var(--pure-white);
+            line-height: 1.7;
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 18px 6%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(10, 10, 15, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--gray-border);
+        }
+
+        .nav-logo img {
+            height: 55px;
+            filter: drop-shadow(0 0 20px rgba(255, 217, 61, 0.4));
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 35px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--brand-yellow);
+        }
+
+        .nav-cta {
+            background: var(--brand-yellow);
+            padding: 12px 28px;
+            border-radius: 50px;
+            color: var(--brand-black) !important;
+            font-weight: 700;
+        }
+
+        .page-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 140px 6% 80px;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            color: var(--brand-yellow);
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 50px 0 20px;
+            color: var(--pure-white);
+        }
+
+        p {
+            color: rgba(255, 255, 255, 0.75);
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .team-member {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--gray-border);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .team-member:hover {
+            border-color: var(--brand-yellow);
+            transform: translateY(-5px);
+        }
+
+        .team-avatar {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--brand-yellow), var(--brand-orange));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin: 0 auto 15px;
+        }
+
+        .team-member h4 {
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .team-member span {
+            color: var(--brand-yellow);
+            font-size: 0.9rem;
+        }
+
+        footer {
+            padding: 40px 6%;
+            text-align: center;
+            border-top: 1px solid var(--gray-border);
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        footer a {
+            color: var(--brand-yellow);
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <a href="landing.html" class="nav-logo">
+            <img src="jukebob_logo.png" alt="JukeBob">
+        </a>
+        <div class="nav-links">
+            <a href="landing.html">Home</a>
+            <a href="about.html">About</a>
+            <a href="careers.html">Careers</a>
+            <a href="http://localhost:8080" class="nav-cta">Launch App</a>
+        </div>
+    </nav>
+
+    <div class="page-content">
+        <h1>About JukeBob</h1>
+        <p>
+            We're on a mission to revolutionize how people experience music at venues. JukeBob bridges the gap
+            between music lovers and artists, creating interactive experiences that put the power of the playlist
+            back where it belongs – with the people.
+        </p>
+
+        <h2>Our Story</h2>
+        <p>
+            JukeBob was born from a simple frustration: walking into a bar and hearing the same tired playlist
+            while your favorite songs sat unplayed. We thought, "What if everyone could have a say in what plays next?"
+        </p>
+        <p>
+            Founded in 2025, we started with a simple idea: democratize the DJ booth. Today, we're building
+            India's first crowd-powered music platform, connecting venues, artists, and music lovers in ways
+            never seen before.
+        </p>
+
+        <h2>What Makes Us Different</h2>
+        <p>
+            We're not just another music app. We're creating a new social experience around music. From interactive
+            jukeboxes to artist tipping, from AI-powered DJing to live event discovery – JukeBob is where technology
+            meets the party.
+        </p>
+
+        <h2>Our Team</h2>
+        <div class="team-grid">
+            <div class="team-member">
+                <div class="team-avatar">🎵</div>
+                <h4>The Founders</h4>
+                <span>Visionaries</span>
+            </div>
+            <div class="team-member">
+                <div class="team-avatar">💻</div>
+                <h4>Engineering</h4>
+                <span>Builders</span>
+            </div>
+            <div class="team-member">
+                <div class="team-avatar">🎨</div>
+                <h4>Design</h4>
+                <span>Creators</span>
+            </div>
+            <div class="team-member">
+                <div class="team-avatar">📈</div>
+                <h4>Growth</h4>
+                <span>Hustlers</span>
+            </div>
+        </div>
+
+        <h2>Our Values</h2>
+        <p><strong>1. Music First:</strong> Everything we build starts with the love of music.</p>
+        <p><strong>2. Community Powered:</strong> We believe the crowd knows best.</p>
+        <p><strong>3. Artist Friendly:</strong> We ensure artists get paid fairly for their craft.</p>
+        <p><strong>4. Party Ready:</strong> We're building tech that makes nights better.</p>
+    </div>
+
+    <footer>
+        <p>© 2026 JukeBob. All rights reserved. | <a href="landing.html">Back to Home</a></p>
+    </footer>
+</body>
+
+</html>

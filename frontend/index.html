@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="/styles.css">
     <link rel="icon" href="/icon.png" type="image/png">
 </head>
+
 <body>
     <div id="app">
         <!-- Main Home Screen -->
@@ -15,24 +17,30 @@
                 <img src="/logo.png" alt="JUKEBOB Logo" class="main-logo">
                 <h1>JUKEBOB</h1>
                 <p class="tagline">Your Ultimate Party Entertainment Hub</p>
-                
+
                 <div class="section-cards">
                     <div class="section-card jukebox-card" onclick="showSection('jukebox')">
                         <div class="card-icon">🎵</div>
                         <h3>Jukebox</h3>
                         <p>Crowd-controlled music requests, voting & tipping</p>
                     </div>
-                    
+
                     <div class="section-card games-card" onclick="showSection('games')">
                         <div class="card-icon">🎮</div>
                         <h3>Games</h3>
                         <p>Play Tic Tac Toe, Mafia & more</p>
                     </div>
-                    
+
                     <div class="section-card aidj-card" onclick="showSection('ai-dj')">
                         <div class="card-icon">🎧</div>
                         <h3>AI DJ</h3>
                         <p>Smart mixing with dual turntables</p>
+                    </div>
+
+                    <div class="section-card wtpt-card" onclick="showSection('wtpt')">
+                        <div class="card-icon">🎉</div>
+                        <h3>WTPT</h3>
+                        <p>Where's the Party Tonight?</p>
                     </div>
                 </div>
             </div>
@@ -42,11 +50,11 @@
         <div id="jukebox-section" class="screen jukebox-theme">
             <div class="container">
                 <button class="btn-back" onclick="backToHome()">← Back to Home</button>
-                
+
                 <div id="jukebox-home" class="sub-screen active">
                     <h1>🎵 Jukebox</h1>
                     <p class="tagline">Let the crowd choose the vibe</p>
-                    
+
                     <div class="button-group">
                         <button class="btn btn-primary" onclick="showJukeboxScreen('create-jukebox')">
                             🎤 Host a Jukebox
@@ -134,7 +142,7 @@
                 <div id="guest-jukebox" class="sub-screen">
                     <button class="btn-back" onclick="leaveJukebox()">← Leave</button>
                     <h2 id="guest-jukebox-name">Jukebox</h2>
-                    
+
                     <button class="btn btn-primary" onclick="showRequestForm()">
                         🎵 Request Song
                     </button>
@@ -157,11 +165,11 @@
         <div id="games-section" class="screen games-theme">
             <div class="container">
                 <button class="btn-back" onclick="backToHome()">← Back to Home</button>
-                
+
                 <div id="games-home" class="sub-screen active">
                     <h1>🎮 Game Hub</h1>
                     <p class="tagline">Play and compete with friends</p>
-                    
+
                     <div class="button-group">
                         <button class="btn btn-primary" onclick="showGamesScreen('create-game')">
                             🎯 Create Game Room
@@ -218,7 +226,7 @@
                         <p>Room Code: <strong id="ttt-room-code"></strong></p>
                         <p id="ttt-turn-info"></p>
                     </div>
-                    
+
                     <!-- Scoreboard -->
                     <div id="scoreboard" class="scoreboard">
                         <div class="score-display">
@@ -236,10 +244,10 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="game-container">
                         <div id="tictactoe-board" class="ttt-board"></div>
-                        
+
                         <!-- Leaderboard Panel -->
                         <div id="leaderboard" class="leaderboard-panel">
                             <h3>📊 Leaderboard</h3>
@@ -289,9 +297,9 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <p id="ttt-result"></p>
-                    
+
                     <!-- Play Again Button (shown after game ends) -->
                     <div id="restart-container" class="restart-container" style="display: none;">
                         <button id="restart-btn" class="btn btn-restart" onclick="requestRestart()">
@@ -299,7 +307,7 @@
                         </button>
                         <p id="restart-status" class="restart-status"></p>
                     </div>
-                    
+
                     <!-- Emoji Reaction Panel -->
                     <div id="emoji-panel" class="emoji-panel">
                         <h3>Send Reaction</h3>
@@ -316,7 +324,7 @@
                             <button class="emoji-btn" onclick="sendEmoji('🏆')" title="Trophy">🏆</button>
                         </div>
                     </div>
-                    
+
                     <!-- Container for floating emoji reactions -->
                     <div id="emoji-reactions-container" class="emoji-reactions-container"></div>
                 </div>
@@ -327,37 +335,308 @@
         <div id="ai-dj-section" class="screen aidj-theme">
             <div class="container">
                 <button class="btn-back" onclick="backToHome()">← Back to Home</button>
-                
+
                 <h1>🎧 AI DJ Studio</h1>
-                <p class="tagline">Smart mixing with AI-powered transitions</p>
-                
-                <div class="turntables">
-                    <div class="turntable">
-                        <h3>Deck A</h3>
-                        <div class="track-upload">
-                            <input type="file" id="deck-a-file" accept="audio/*" onchange="loadTrack('a', this)">
-                            <label for="deck-a-file">Upload Track</label>
+                <p class="tagline">Professional mixing with intelligent transitions</p>
+
+                <!-- Mix Presets -->
+                <div class="mix-presets">
+                    <button class="preset-btn active" data-duration="3" onclick="setMixPreset(this, 3)">🔥 Club
+                        Mix</button>
+                    <button class="preset-btn" data-duration="6" onclick="setMixPreset(this, 6)">🎵 Smooth</button>
+                    <button class="preset-btn" data-duration="1" onclick="setMixPreset(this, 1)">⚡ Quick Cut</button>
+                    <button class="preset-btn" data-duration="10" onclick="setMixPreset(this, 10)">🌙 Ambient</button>
+                </div>
+
+                <!-- DJ Decks -->
+                <div class="dj-decks">
+                    <!-- Deck A -->
+                    <div class="deck deck-a" id="deck-a">
+                        <div class="deck-header">
+                            <h3>DECK A</h3>
+                            <span class="bpm-display" id="bpm-a">-- BPM</span>
                         </div>
-                        <div id="deck-a-info" class="track-info"></div>
-                        <audio id="deck-a-player" controls></audio>
-                    </div>
-                    
-                    <div class="crossfader">
-                        <label>AI Crossfader</label>
-                        <input type="range" id="crossfader" min="0" max="100" value="50">
-                        <button class="btn btn-primary" onclick="aiAutoMix()">🤖 Auto Mix</button>
-                    </div>
-                    
-                    <div class="turntable">
-                        <h3>Deck B</h3>
-                        <div class="track-upload">
-                            <input type="file" id="deck-b-file" accept="audio/*" onchange="loadTrack('b', this)">
-                            <label for="deck-b-file">Upload Track</label>
+                        <div class="waveform-container" id="waveform-a">
+                            <div class="waveform-placeholder">Upload a track to see waveform</div>
                         </div>
-                        <div id="deck-b-info" class="track-info"></div>
-                        <audio id="deck-b-player" controls></audio>
+                        <div class="track-info" id="deck-a-info">
+                            <span class="track-name">No track loaded</span>
+                            <span class="track-time">0:00 / 0:00</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progress-a"></div>
+                        </div>
+                        <div class="deck-controls">
+                            <button class="play-btn" id="play-a" onclick="togglePlay('a')">▶</button>
+                            <div class="volume-control">
+                                <span>🔊</span>
+                                <input type="range" class="volume-slider" id="volume-a" min="0" max="100" value="100"
+                                    oninput="setVolume('a', this.value)">
+                            </div>
+                            <input type="file" id="deck-a-file" accept="audio/*" onchange="loadTrack('a', this)"
+                                style="display:none">
+                            <label for="deck-a-file" class="upload-btn">📁 Load Track</label>
+                        </div>
+                        <audio id="deck-a-player"></audio>
+                    </div>
+
+                    <!-- Center Mixer -->
+                    <div class="mixer-section">
+                        <div class="vu-meters">
+                            <div class="vu-meter-container">
+                                <span>A</span>
+                                <div class="vu-meter" id="vu-a">
+                                    <div class="vu-fill"></div>
+                                </div>
+                            </div>
+                            <div class="vu-meter-container">
+                                <span>B</span>
+                                <div class="vu-meter" id="vu-b">
+                                    <div class="vu-fill"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="crossfader-container">
+                            <label>CROSSFADER</label>
+                            <div class="crossfader-labels">
+                                <span>A</span>
+                                <span>B</span>
+                            </div>
+                            <input type="range" id="crossfader" min="0" max="100" value="50"
+                                oninput="manualCrossfade(this.value)">
+                        </div>
+
+                        <div class="transition-time">
+                            <label>Transition: <span id="fade-time">3</span>s</label>
+                            <input type="range" id="fade-duration" min="1" max="10" value="3"
+                                oninput="updateFadeTime(this.value)">
+                        </div>
+
+                        <button class="automix-btn" onclick="aiAutoMix()" id="automix-btn">
+                            🤖 AI AUTO MIX
+                        </button>
+
+                        <div class="mix-effects">
+                            <button class="effect-btn" onclick="toggleEffect('lowpass')" id="effect-lowpass">🔉 Low
+                                Pass</button>
+                            <button class="effect-btn" onclick="toggleEffect('echo')" id="effect-echo">🌀 Echo</button>
+                        </div>
+                    </div>
+
+                    <!-- Deck B -->
+                    <div class="deck deck-b" id="deck-b">
+                        <div class="deck-header">
+                            <h3>DECK B</h3>
+                            <span class="bpm-display" id="bpm-b">-- BPM</span>
+                        </div>
+                        <div class="waveform-container" id="waveform-b">
+                            <div class="waveform-placeholder">Upload a track to see waveform</div>
+                        </div>
+                        <div class="track-info" id="deck-b-info">
+                            <span class="track-name">No track loaded</span>
+                            <span class="track-time">0:00 / 0:00</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progress-b"></div>
+                        </div>
+                        <div class="deck-controls">
+                            <button class="play-btn" id="play-b" onclick="togglePlay('b')">▶</button>
+                            <div class="volume-control">
+                                <span>🔊</span>
+                                <input type="range" class="volume-slider" id="volume-b" min="0" max="100" value="100"
+                                    oninput="setVolume('b', this.value)">
+                            </div>
+                            <input type="file" id="deck-b-file" accept="audio/*" onchange="loadTrack('b', this)"
+                                style="display:none">
+                            <label for="deck-b-file" class="upload-btn">📁 Load Track</label>
+                        </div>
+                        <audio id="deck-b-player"></audio>
                     </div>
                 </div>
+
+                <!-- Playlist Queue -->
+                <div class="playlist-section">
+                    <div class="playlist-header">
+                        <h4>📋 Playlist Queue</h4>
+                        <div class="playlist-controls">
+                            <input type="file" id="add-to-queue" accept="audio/*" multiple onchange="addToQueue(this)"
+                                style="display:none">
+                            <label for="add-to-queue" class="add-queue-btn">+ Add Tracks</label>
+                            <button class="clear-queue-btn" onclick="clearPlaylist()">🗑️ Clear</button>
+                        </div>
+                    </div>
+                    <div id="playlist-items" class="playlist-items">
+                        <div class="playlist-empty">No tracks in queue. Add tracks to enable continuous play!</div>
+                    </div>
+                    <div class="autoplay-toggle">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="autoplay-toggle" onchange="toggleAutoplay()">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span>Auto-play next track</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- WTPT (Where's the Party Tonight) Section -->
+        <div id="wtpt-section" class="screen wtpt-theme">
+            <div class="container">
+                <button class="btn-back" onclick="backToHome()">← Back to Home</button>
+
+                <div class="wtpt-header">
+                    <h1>🎉 Where's the Party Tonight</h1>
+                    <p class="tagline">Find the best music events in your city</p>
+                </div>
+
+                <!-- City & Filters -->
+                <div class="wtpt-filters">
+                    <select id="wtpt-city" onchange="loadWTPTEvents()">
+                        <option value="mumbai">Mumbai</option>
+                        <option value="delhi">Delhi NCR</option>
+                        <option value="bangalore">Bangalore</option>
+                        <option value="pune">Pune</option>
+                        <option value="goa">Goa</option>
+                        <option value="hyderabad">Hyderabad</option>
+                        <option value="chennai">Chennai</option>
+                        <option value="kolkata">Kolkata</option>
+                    </select>
+                </div>
+
+                <!-- Category Tabs -->
+                <div class="wtpt-categories">
+                    <button class="category-tab active" onclick="filterWTPTCategory('all')">All Events</button>
+                    <button class="category-tab" onclick="filterWTPTCategory('dj_night')">🎧 DJ Night</button>
+                    <button class="category-tab" onclick="filterWTPTCategory('karaoke')">🎤 Karaoke</button>
+                    <button class="category-tab" onclick="filterWTPTCategory('live_show')">🎸 Live Show</button>
+                    <button class="category-tab" onclick="filterWTPTCategory('concert')">🎵 Concerts</button>
+                    <button class="category-tab jukebob-exclusive" onclick="filterWTPTCategory('exclusive')">⭐ JukeBob
+                        Xclusive</button>
+                </div>
+
+                <!-- View Tabs -->
+                <div class="wtpt-view-tabs">
+                    <button class="view-tab active" onclick="showWTPTView('events')">🎉 Events</button>
+                    <button class="view-tab" onclick="showWTPTView('bookings')">🎟️ My Bookings</button>
+                </div>
+
+                <!-- Events View -->
+                <div id="wtpt-events-view" class="wtpt-view active">
+                    <div id="wtpt-events-grid" class="events-grid">
+                        <div class="loading-events">
+                            <div class="spinner"></div>
+                            <p>Loading events...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- My Bookings View -->
+                <div id="wtpt-bookings-view" class="wtpt-view">
+                    <!-- Quick Add Options -->
+                    <div class="booking-add-section">
+                        <h3 style="margin-bottom: 15px; color: #fff;">📝 Add Your Booking</h3>
+
+                        <!-- Upload Option -->
+                        <div class="booking-upload-zone"
+                            onclick="document.getElementById('booking-file-input').click()">
+                            <div class="upload-icon">📤</div>
+                            <p class="upload-text">Upload ticket PDF or screenshot</p>
+                            <p class="upload-hint">Auto-fill booking details from your confirmation</p>
+                            <input type="file" id="booking-file-input" accept=".pdf,.png,.jpg,.jpeg,image/*"
+                                onchange="handleBookingUpload(this)" style="display: none;">
+                        </div>
+
+                        <!-- Or Manual Entry -->
+                        <div class="booking-add-divider">
+                            <span>OR</span>
+                        </div>
+
+                        <button class="btn btn-primary booking-manual-btn" onclick="openManualBookingModal()">
+                            ✍️ Enter Booking Manually
+                        </button>
+                    </div>
+
+                    <!-- Bookings List -->
+                    <h3 style="margin: 25px 0 15px; color: #fff;">🎟️ My Bookings</h3>
+                    <div id="my-bookings-list" class="bookings-list">
+                        <div class="no-bookings">
+                            <p>No bookings yet! Find an event and book your tickets.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Disclaimer Note -->
+                <div class="wtpt-disclaimer">
+                    <p>🎫 JukeBob doesn't earn any commissions from ticket sales on our platform.</p>
+                    <p>🕐 All times are local to the venue time zone.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TRACK SESSION Section -->
+        <div id="tracker-section" class="screen tracker-theme">
+            <div class="container">
+                <button class="btn-back" onclick="backToHome()">← Back to Home</button>
+
+                <div class="tracker-header">
+                    <h1>📚 Track Session</h1>
+                    <p class="tagline">Upload PDF or images to create study trackers automatically</p>
+                </div>
+
+                <!-- Upload Zone -->
+                <div class="upload-zone" id="upload-zone"
+                    onclick="document.getElementById('tracker-file-input').click()">
+                    <div class="upload-icon">📤</div>
+                    <p class="upload-text">Click to upload or drag & drop</p>
+                    <p class="upload-hint">Supports PDF, PNG, JPG, JPEG files</p>
+                    <input type="file" id="tracker-file-input" class="upload-input"
+                        accept=".pdf,.png,.jpg,.jpeg,image/*" onchange="handleTrackerUpload(this)">
+                </div>
+
+                <!-- Processing Indicator -->
+                <div id="tracker-processing" class="processing-indicator" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>🤖 AI is parsing your document...</p>
+                </div>
+
+                <!-- Trackers Grid -->
+                <div id="trackers-container">
+                    <h2 style="margin-bottom: 20px;">📋 My Trackers</h2>
+                    <div id="trackers-grid" class="trackers-grid">
+                        <div class="no-trackers">
+                            <p>No trackers yet! Upload a PDF or image to get started.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- WTPT Booking Modal -->
+        <div id="wtpt-booking-modal" class="modal">
+            <div class="modal-content wtpt-modal">
+                <span class="close" onclick="closeWTPTBookingModal()">&times;</span>
+                <h2>🎟️ Record Your Booking</h2>
+                <p class="modal-subtitle">After booking on the platform, enter your details to track it here</p>
+
+                <form onsubmit="submitWTPTBooking(event)">
+                    <input type="hidden" id="wtpt-event-id">
+                    <input type="hidden" id="wtpt-event-title">
+                    <input type="hidden" id="wtpt-event-platform">
+                    <input type="hidden" id="wtpt-event-venue">
+                    <input type="hidden" id="wtpt-event-date">
+
+                    <div class="booking-event-info" id="booking-event-info"></div>
+
+                    <input type="text" id="wtpt-booking-id" placeholder="Platform Booking/Confirmation ID" required>
+                    <input type="text" id="wtpt-user-name" placeholder="Your Full Name" required>
+                    <input type="email" id="wtpt-user-email" placeholder="Email Address" required>
+                    <input type="tel" id="wtpt-user-phone" placeholder="Phone Number" required>
+                    <input type="number" id="wtpt-tickets" placeholder="Number of Tickets" min="1" value="1" required>
+                    <input type="number" id="wtpt-amount" placeholder="Total Amount Paid (₹)" min="0" required>
+
+                    <button type="submit" class="btn btn-primary">Save Booking</button>
+                </form>
             </div>
         </div>
 
@@ -370,7 +649,7 @@
                     <input type="text" id="song-name" placeholder="Song Name" required>
                     <input type="text" id="song-artist" placeholder="Artist" required>
                     <input type="number" id="tip-amount" placeholder="Tip Amount (₹)" min="0" step="0.01">
-                    
+
                     <div class="vip-benefits-info">
                         <h4>💡 Queue Priority System:</h4>
                         <div class="queue-tier">
@@ -391,7 +670,7 @@
                             <li>⏰ First-come, first-served order</li>
                         </ul>
                     </div>
-                    
+
                     <button type="submit" class="btn btn-primary">Submit Request</button>
                 </form>
             </div>
@@ -409,4 +688,5 @@
 
     <script src="/app.js"></script>
 </body>
+
 </html>

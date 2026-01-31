@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JukeBob | The Future of Live Music Experiences</title>
+    <meta name="description" content="JukeBob revolutionizes how audiences connect with live music.">
+    <link rel="icon" type="image/png" href="icon.png">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Outfit:wght@400;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --neon-yellow: #FFE600;
+            --neon-pink: #FF2D95;
+            --neon-cyan: #00FFF7;
+            --neon-orange: #FF6B00;
+            --arcade-red: #FF3B3B;
+            --dark: #0D0D0D;
+            --darker: #000000;
+            --cream: #FFF8DC;
+            --purple: #9D4EDD;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--cream);
+            color: var(--dark);
+            overflow-x: hidden;
+        }
+
+        /* Retro Font */
+        .retro-font {
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 15px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: var(--dark);
+            border-bottom: 4px solid var(--neon-yellow);
+        }
+
+        .nav-logo img {
+            height: 55px;
+            filter: drop-shadow(0 0 10px var(--neon-yellow));
+            animation: logoGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes logoGlow {
+            from {
+                filter: drop-shadow(0 0 10px var(--neon-yellow));
+            }
+
+            to {
+                filter: drop-shadow(0 0 25px var(--neon-yellow)) drop-shadow(0 0 40px var(--neon-orange));
+            }
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--cream);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: var(--neon-yellow);
+            text-shadow: 0 0 10px var(--neon-yellow);
+        }
+
+        .nav-cta {
+            background: var(--arcade-red);
+            padding: 12px 25px;
+            border-radius: 5px;
+            color: #fff !important;
+            font-weight: 800;
+            border: 3px solid #fff;
+            box-shadow: 4px 4px 0 #000, 0 0 20px rgba(255, 59, 59, 0.5);
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+        }
+
+        .nav-cta:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0 #000, 0 0 30px rgba(255, 59, 59, 0.7);
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 120px 5% 80px;
+            position: relative;
+            background:
+                repeating-linear-gradient(0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(0, 0, 0, 0.03) 2px,
+                    rgba(0, 0, 0, 0.03) 4px),
+                linear-gradient(180deg, var(--cream) 0%, #FFF5CC 100%);
+            overflow: hidden;
+        }
+
+        /* Floating Logo */
+        .floating-logo {
+            position: absolute;
+            width: 180px;
+            height: auto;
+            z-index: 0;
+            pointer-events: none;
+            filter: drop-shadow(0 0 20px rgba(255, 230, 0, 0.5));
+            animation: bounce 3s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(-5deg);
+            }
+
+            50% {
+                transform: translateY(-30px) rotate(5deg);
+            }
+        }
+
+        .hero-content {
+            max-width: 900px;
+            text-align: center;
+            z-index: 1;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: var(--dark);
+            color: var(--neon-yellow);
+            padding: 10px 25px;
+            border-radius: 0;
+            font-size: 0.7rem;
+            margin-bottom: 30px;
+            font-family: 'Press Start 2P', cursive;
+            border: 3px solid var(--neon-yellow);
+            box-shadow: 4px 4px 0 var(--neon-yellow);
+            animation: blink 1s steps(2) infinite;
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0.8;
+            }
+        }
+
+        .hero h1 {
+            font-size: clamp(2rem, 6vw, 4rem);
+            font-weight: 900;
+            line-height: 1.2;
+            margin-bottom: 25px;
+            color: var(--dark);
+            text-shadow: 4px 4px 0 var(--neon-yellow), 8px 8px 0 var(--arcade-red);
+        }
+
+        .hero h1 .gradient-text {
+            color: var(--arcade-red);
+            text-shadow: 3px 3px 0 var(--dark);
+        }
+
+        .hero p {
+            font-size: 1.15rem;
+            color: #444;
+            max-width: 550px;
+            margin: 0 auto 40px;
+            line-height: 1.7;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 18px 40px;
+            font-size: 1rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: var(--neon-yellow);
+            color: var(--dark);
+            border: 4px solid var(--dark);
+            box-shadow: 6px 6px 0 var(--dark);
+        }
+
+        .btn-primary:hover {
+            transform: translate(-3px, -3px);
+            box-shadow: 9px 9px 0 var(--dark);
+        }
+
+        .btn-secondary {
+            background: #fff;
+            color: var(--dark);
+            border: 4px solid var(--dark);
+            box-shadow: 6px 6px 0 var(--dark);
+        }
+
+        .btn-secondary:hover {
+            background: var(--arcade-red);
+            color: #fff;
+            transform: translate(-3px, -3px);
+            box-shadow: 9px 9px 0 var(--dark);
+        }
+
+        /* Stats Section */
+        .stats {
+            padding: 80px 5%;
+            background: var(--dark);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                repeating-linear-gradient(0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(255, 255, 255, 0.02) 2px,
+                    rgba(255, 255, 255, 0.02) 4px);
+            pointer-events: none;
+        }
+
+        .stats-grid {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 30px;
+        }
+
+        .stat-item {
+            background: linear-gradient(135deg, rgba(255, 230, 0, 0.1), rgba(255, 107, 0, 0.1));
+            border: 3px solid var(--neon-yellow);
+            padding: 30px 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .stat-item::before {
+            content: '';
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            bottom: -5px;
+            left: 5px;
+            background: var(--neon-orange);
+            z-index: -1;
+        }
+
+        .stat-item h3 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1.5rem;
+            color: var(--neon-yellow);
+            margin-bottom: 15px;
+            text-shadow: 0 0 10px var(--neon-yellow);
+        }
+
+        .stat-item p {
+            color: var(--cream);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 100px 5%;
+            background: var(--cream);
+        }
+
+        .section-header {
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto 60px;
+        }
+
+        .section-tag {
+            display: inline-block;
+            background: var(--arcade-red);
+            color: #fff;
+            padding: 8px 20px;
+            font-size: 0.65rem;
+            font-family: 'Press Start 2P', cursive;
+            margin-bottom: 20px;
+            border: 3px solid var(--dark);
+            box-shadow: 3px 3px 0 var(--dark);
+        }
+
+        .section-header h2 {
+            font-size: clamp(1.8rem, 4vw, 2.8rem);
+            font-weight: 900;
+            color: var(--dark);
+            text-shadow: 3px 3px 0 var(--neon-yellow);
+        }
+
+        .features-grid {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+        }
+
+        .feature-card {
+            background: #fff;
+            border: 4px solid var(--dark);
+            padding: 35px;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            right: -8px;
+            bottom: -8px;
+            left: 8px;
+            background: var(--neon-yellow);
+            z-index: -1;
+            transition: all 0.2s ease;
+        }
+
+        .feature-card:hover {
+            transform: translate(-4px, -4px);
+        }
+
+        .feature-card:hover::before {
+            top: 12px;
+            right: -12px;
+            bottom: -12px;
+            left: 12px;
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            font-size: 1.3rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+            color: var(--dark);
+        }
+
+        .feature-card p {
+            color: #555;
+            line-height: 1.7;
+        }
+
+        /* Many More Section */
+        .many-more {
+            padding: 80px 5%;
+            background: var(--neon-yellow);
+            border-top: 6px solid var(--dark);
+            border-bottom: 6px solid var(--dark);
+        }
+
+        .many-more h2 {
+            text-align: center;
+            font-family: 'Press Start 2P', cursive;
+            font-size: clamp(0.9rem, 2.5vw, 1.3rem);
+            color: var(--dark);
+            margin-bottom: 15px;
+            animation: textFlicker 3s linear infinite;
+        }
+
+        @keyframes textFlicker {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            92% {
+                opacity: 1;
+            }
+
+            93% {
+                opacity: 0.3;
+            }
+
+            94% {
+                opacity: 1;
+            }
+
+            96% {
+                opacity: 0.5;
+            }
+
+            97% {
+                opacity: 1;
+            }
+        }
+
+        .many-more>p {
+            text-align: center;
+            font-size: 1rem;
+            color: var(--dark);
+            margin-bottom: 40px;
+            opacity: 0.8;
+        }
+
+        .coming-soon-grid {
+            max-width: 900px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .coming-soon-item {
+            background: var(--dark);
+            color: var(--cream);
+            padding: 25px 15px;
+            text-align: center;
+            border: 3px solid var(--dark);
+            transition: all 0.2s ease;
+        }
+
+        .coming-soon-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .coming-soon-item .icon {
+            font-size: 2rem;
+            margin-bottom: 12px;
+        }
+
+        .coming-soon-item h4 {
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .coming-soon-item span {
+            font-size: 0.6rem;
+            font-family: 'Press Start 2P', cursive;
+            color: var(--neon-cyan);
+        }
+
+        /* How It Works */
+        .how-it-works {
+            padding: 100px 5%;
+            background:
+                repeating-linear-gradient(45deg,
+                    transparent,
+                    transparent 10px,
+                    rgba(0, 0, 0, 0.02) 10px,
+                    rgba(0, 0, 0, 0.02) 20px),
+                var(--cream);
+        }
+
+        .steps-container {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
+
+        .step {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+            background: #fff;
+            padding: 30px;
+            border: 4px solid var(--dark);
+            position: relative;
+        }
+
+        .step::after {
+            content: '';
+            position: absolute;
+            top: 8px;
+            right: -8px;
+            bottom: -8px;
+            left: 8px;
+            background: var(--arcade-red);
+            z-index: -1;
+        }
+
+        .step-number {
+            min-width: 70px;
+            height: 70px;
+            background: var(--neon-yellow);
+            border: 4px solid var(--dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1.5rem;
+            color: var(--dark);
+        }
+
+        .step-content h3 {
+            font-size: 1.3rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            color: var(--dark);
+        }
+
+        .step-content p {
+            color: #555;
+            font-size: 0.95rem;
+        }
+
+        /* Investor Section */
+        .investors {
+            padding: 100px 5%;
+            background: var(--dark);
+            color: var(--cream);
+            position: relative;
+        }
+
+        .investors::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 10px;
+            background: repeating-linear-gradient(90deg,
+                    var(--neon-yellow),
+                    var(--neon-yellow) 20px,
+                    var(--arcade-red) 20px,
+                    var(--arcade-red) 40px);
+        }
+
+        .investor-content {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .investor-text h2 {
+            font-size: 2rem;
+            font-weight: 900;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 0 var(--arcade-red);
+        }
+
+        .investor-text h2 span {
+            color: var(--neon-yellow);
+            text-shadow: 2px 2px 0 var(--neon-orange);
+        }
+
+        .investor-text p {
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 20px;
+            line-height: 1.7;
+        }
+
+        .investor-highlights {
+            list-style: none;
+        }
+
+        .investor-highlights li {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .investor-highlights li::before {
+            content: '►';
+            color: var(--neon-yellow);
+            font-size: 0.8rem;
+        }
+
+        .investor-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 3px solid var(--neon-yellow);
+            padding: 25px;
+            text-align: center;
+        }
+
+        .metric-card h4 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1.2rem;
+            color: var(--neon-yellow);
+            text-shadow: 0 0 10px var(--neon-yellow);
+            margin-bottom: 8px;
+        }
+
+        .metric-card p {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+        }
+
+        /* CTA Section */
+        .cta {
+            padding: 100px 5%;
+            text-align: center;
+            background: var(--cream);
+            position: relative;
+        }
+
+        .cta h2 {
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            font-weight: 900;
+            margin-bottom: 20px;
+            color: var(--dark);
+            text-shadow: 3px 3px 0 var(--neon-yellow);
+        }
+
+        .cta p {
+            color: #555;
+            font-size: 1.1rem;
+            max-width: 500px;
+            margin: 0 auto 40px;
+        }
+
+        /* Footer */
+        footer {
+            padding: 50px 5% 30px;
+            background: var(--dark);
+            color: var(--cream);
+            border-top: 6px solid var(--neon-yellow);
+        }
+
+        .footer-content {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 50px;
+        }
+
+        .footer-brand img {
+            height: 50px;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 10px var(--neon-yellow));
+        }
+
+        .footer-brand p {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9rem;
+        }
+
+        .footer-links h4 {
+            font-size: 0.65rem;
+            font-family: 'Press Start 2P', cursive;
+            margin-bottom: 20px;
+            color: var(--neon-yellow);
+        }
+
+        .footer-links a {
+            display: block;
+            color: rgba(255, 255, 255, 0.6);
+            text-decoration: none;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--neon-yellow);
+            padding-left: 5px;
+        }
+
+        .footer-bottom {
+            max-width: 1100px;
+            margin: 40px auto 0;
+            padding-top: 20px;
+            border-top: 2px dashed rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 0.8rem;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 15px;
+        }
+
+        .social-links a {
+            width: 40px;
+            height: 40px;
+            background: var(--neon-yellow);
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: bold;
+            border: 2px solid var(--dark);
+            transition: all 0.2s ease;
+        }
+
+        .social-links a:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 0 var(--dark);
+        }
+
+        /* Mobile Menu */
+        .mobile-menu-btn {
+            display: none;
+            background: var(--neon-yellow);
+            border: 3px solid #fff;
+            color: var(--dark);
+            font-size: 1.3rem;
+            padding: 8px 12px;
+            cursor: pointer;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .investor-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .investor-highlights {
+                display: inline-block;
+                text-align: left;
+            }
+
+            .coming-soon-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .step {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr 1fr;
+                gap: 30px;
+            }
+
+            .footer-bottom {
+                flex-direction: column;
+                gap: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .investor-metrics {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+            }
+
+            .coming-soon-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero h1 {
+                text-shadow: 2px 2px 0 var(--neon-yellow);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-logo">
+            <img src="jukebob_logo.png" alt="JukeBob">
+        </div>
+        <div class="nav-links">
+            <a href="#features">Features</a>
+            <a href="#how-it-works">How It Works</a>
+            <a href="#investors">Investors</a>
+            <a href="http://localhost:8080" class="nav-cta">▶ Play Now</a>
+        </div>
+        <button class="mobile-menu-btn">☰</button>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="hero-section">
+        <img src="jukebob_logo.png" alt="" class="floating-logo" id="floating-logo">
+
+        <div class="hero-content">
+            <div class="hero-badge retro-font">
+                ★ INSERT COIN ★
+            </div>
+            <h1>
+                Your Music.<br>
+                <span class="gradient-text">Your Rules.</span><br>
+                Your Party.
+            </h1>
+            <p>
+                JukeBob transforms any venue into an interactive music experience.
+                Request songs, tip artists, discover events, and connect with the music you love.
+            </p>
+            <div class="hero-buttons">
+                <a href="http://localhost:8080" class="btn btn-primary">
+                    🎵 Start Game
+                </a>
+                <a href="#investors" class="btn btn-secondary">
+                    📊 High Scores
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="stats">
+        <div class="stats-grid">
+            <div class="stat-item">
+                <h3>10K+</h3>
+                <p>Song Requests</p>
+            </div>
+            <div class="stat-item">
+                <h3>500+</h3>
+                <p>Artists</p>
+            </div>
+            <div class="stat-item">
+                <h3>8</h3>
+                <p>Cities</p>
+            </div>
+            <div class="stat-item">
+                <h3>₹2L+</h3>
+                <p>Tips Earned</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section class="features" id="features">
+        <div class="section-header">
+            <span class="section-tag">POWER-UPS</span>
+            <h2>Everything Music Lovers Need</h2>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🎵</div>
+                <h3>Interactive Jukebox</h3>
+                <p>Create or join party sessions. Request songs, vote on the playlist, and tip artists in real-time. VIP
+                    requests get priority!</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎉</div>
+                <h3>WTPT - Event Discovery</h3>
+                <p>Where's The Party Tonight? Find concerts, DJ nights, and live shows across 8 major Indian cities with
+                    instant booking.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🤖</div>
+                <h3>AI DJ Mode</h3>
+                <p>Let our AI curate the perfect playlist based on crowd preferences, mood, and real-time engagement
+                    analytics.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎮</div>
+                <h3>Music Games</h3>
+                <p>Play multiplayer games between sets. Challenge friends to music trivia while waiting for your song!
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Many More Section -->
+    <section class="many-more">
+        <h2>🕹️ BONUS LEVELS UNLOCKING SOON...</h2>
+        <p>New power-ups and features coming to enhance your experience!</p>
+        <div class="coming-soon-grid">
+            <div class="coming-soon-item">
+                <div class="icon">🎧</div>
+                <h4>Live Streaming</h4>
+                <span>Q2 2026</span>
+            </div>
+            <div class="coming-soon-item">
+                <div class="icon">💳</div>
+                <h4>In-App Pay</h4>
+                <span>Q2 2026</span>
+            </div>
+            <div class="coming-soon-item">
+                <div class="icon">🏆</div>
+                <h4>Leaderboards</h4>
+                <span>Q3 2026</span>
+            </div>
+            <div class="coming-soon-item">
+                <div class="icon">🎤</div>
+                <h4>Karaoke Mode</h4>
+                <span>Q3 2026</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="how-it-works" id="how-it-works">
+        <div class="section-header">
+            <span class="section-tag">TUTORIAL</span>
+            <h2>How To Play</h2>
+        </div>
+        <div class="steps-container">
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h3>Scan & Join</h3>
+                    <p>Artist displays a QR code. Scan to instantly join. No app download needed!</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h3>Request & Tip</h3>
+                    <p>Browse songs, make requests, and add tips to boost your song to VIP queue!</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h3>Enjoy & Engage</h3>
+                    <p>Watch your song climb the queue, vote, play games, and have fun!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Investor Section -->
+    <section class="investors" id="investors">
+        <div class="section-header" style="margin-bottom: 50px;">
+            <span class="section-tag">BOSS LEVEL</span>
+            <h2 style="color: var(--cream); text-shadow: 3px 3px 0 var(--arcade-red);">Investment Opportunity</h2>
+        </div>
+        <div class="investor-content">
+            <div class="investor-text">
+                <h2>Disrupting the <span>₹15,000 Cr</span> Live Music Industry</h2>
+                <p>
+                    India's live music scene is booming. With 500M+ smartphone users,
+                    JukeBob is positioned to capture a massive market.
+                </p>
+                <ul class="investor-highlights">
+                    <li>5% platform fee on tips</li>
+                    <li>Event ticketing partnerships</li>
+                    <li>Premium venue subscriptions</li>
+                    <li>Sponsored playlist placements</li>
+                    <li>B2B analytics for venues</li>
+                </ul>
+            </div>
+            <div class="investor-metrics">
+                <div class="metric-card">
+                    <h4>40%</h4>
+                    <p>MoM Growth</p>
+                </div>
+                <div class="metric-card">
+                    <h4>₹15K CR</h4>
+                    <p>Market Size</p>
+                </div>
+                <div class="metric-card">
+                    <h4>85%</h4>
+                    <p>Retention</p>
+                </div>
+                <div class="metric-card">
+                    <h4>2026</h4>
+                    <p>Pan-India</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta">
+        <h2>Ready to Play?</h2>
+        <p>Join the music revolution. Artists, venues, investors - everyone's welcome!</p>
+        <div class="hero-buttons">
+            <a href="http://localhost:8080" class="btn btn-primary">🚀 Launch Game</a>
+            <a href="mailto:invest@jukebob.com" class="btn btn-secondary">📧 Contact Us</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-brand">
+                <img src="jukebob_logo.png" alt="JukeBob">
+                <p>Revolutionizing India's live music experience. One song at a time.</p>
+            </div>
+            <div class="footer-links">
+                <h4>Product</h4>
+                <a href="http://localhost:8080">Web App</a>
+                <a href="#features">Features</a>
+                <a href="http://localhost:8080/admin.html">Admin</a>
+            </div>
+            <div class="footer-links">
+                <h4>Company</h4>
+                <a href="#">About Us</a>
+                <a href="#">Careers</a>
+                <a href="#">Press Kit</a>
+            </div>
+            <div class="footer-links">
+                <h4>Legal</h4>
+                <a href="#">Privacy</a>
+                <a href="#">Terms</a>
+                <a href="#">Cookies</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 JukeBob. Made with ❤️ in India</p>
+            <div class="social-links">
+                <a href="#">X</a>
+                <a href="#">in</a>
+                <a href="#">IG</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Floating logo animation
+        const heroSection = document.getElementById('hero-section');
+        const floatingLogo = document.getElementById('floating-logo');
+
+        let logoX = Math.random() * (heroSection.offsetWidth - 200);
+        let logoY = Math.random() * (heroSection.offsetHeight - 250) + 100;
+        let velocityX = (Math.random() - 0.5) * 3;
+        let velocityY = (Math.random() - 0.5) * 3;
+
+        floatingLogo.style.left = logoX + 'px';
+        floatingLogo.style.top = logoY + 'px';
+
+        function animateLogo() {
+            logoX += velocityX;
+            logoY += velocityY;
+
+            if (logoX <= 0 || logoX >= heroSection.offsetWidth - 180) {
+                velocityX *= -1;
+                logoX = Math.max(0, Math.min(logoX, heroSection.offsetWidth - 180));
+            }
+            if (logoY <= 80 || logoY >= heroSection.offsetHeight - 180) {
+                velocityY *= -1;
+                logoY = Math.max(80, Math.min(logoY, heroSection.offsetHeight - 180));
+            }
+
+            floatingLogo.style.left = logoX + 'px';
+            floatingLogo.style.top = logoY + 'px';
+
+            requestAnimationFrame(animateLogo);
+        }
+
+        animateLogo();
+
+        // Push logo away when cursor is near
+        heroSection.addEventListener('mousemove', (e) => {
+            const rect = heroSection.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            const logoCenterX = logoX + 90;
+            const logoCenterY = logoY + 90;
+
+            const distX = mouseX - logoCenterX;
+            const distY = mouseY - logoCenterY;
+            const distance = Math.sqrt(distX * distX + distY * distY);
+
+            if (distance < 180) {
+                const angle = Math.atan2(distY, distX);
+                velocityX -= Math.cos(angle) * 0.8;
+                velocityY -= Math.sin(angle) * 0.8;
+
+                const maxVel = 6;
+                velocityX = Math.max(-maxVel, Math.min(maxVel, velocityX));
+                velocityY = Math.max(-maxVel, Math.min(maxVel, velocityY));
+            }
+        });
+
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        // Scroll animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.2 });
+
+        document.querySelectorAll('.stat-item, .feature-card, .step, .metric-card, .coming-soon-item').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'all 0.5s ease';
+            observer.observe(el);
+        });
+    </script>
+</body>
+
+</html>

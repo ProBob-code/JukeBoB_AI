@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JukeBob | The Future of Live Music Experiences</title>
+    <meta name="description" content="JukeBob revolutionizes how audiences connect with live music.">
+    <link rel="icon" type="image/png" href="icon.png">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800;900&family=Outfit:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --gold: #D4AF37;
+            --gold-light: #FFD700;
+            --burgundy: #722F37;
+            --cherry: #9B2335;
+            --cream: #FFF8E7;
+            --dark: #1a1a1a;
+            --chrome: linear-gradient(180deg, #E8E8E8 0%, #B8B8B8 50%, #888888 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--cream);
+            color: var(--dark);
+            overflow-x: hidden;
+        }
+
+        /* Navigation - Chrome Jukebox Style */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 12px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: linear-gradient(180deg, #3a3a3a 0%, #1a1a1a 100%);
+            border-bottom: 4px solid var(--gold);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-logo img {
+            height: 55px;
+            filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.5));
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 35px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--cream);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--gold);
+        }
+
+        .nav-cta {
+            background: linear-gradient(180deg, var(--gold-light) 0%, var(--gold) 100%);
+            padding: 12px 28px;
+            border-radius: 30px;
+            color: var(--dark) !important;
+            font-weight: 700;
+            border: 2px solid #fff;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .nav-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(212, 175, 55, 0.6);
+        }
+
+        /* Hero Section - Jukebox Machine */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 100px 5% 60px;
+            position: relative;
+            background:
+                radial-gradient(ellipse at center, rgba(212, 175, 55, 0.08) 0%, transparent 60%),
+                linear-gradient(180deg, var(--cream) 0%, #FFF5DC 100%);
+            overflow: hidden;
+        }
+
+        /* Jukebox Frame */
+        .jukebox-frame {
+            position: absolute;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 95%;
+            max-width: 1200px;
+            height: calc(100vh - 100px);
+            border: 8px solid;
+            border-image: linear-gradient(180deg, #FFD700, #B8860B, #8B6914) 1;
+            border-radius: 30px;
+            pointer-events: none;
+            opacity: 0.15;
+        }
+
+        /* Floating Logo with Sparkles */
+        .logo-container {
+            position: absolute;
+            width: 280px;
+            height: 280px;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .floating-logo {
+            width: 100%;
+            height: auto;
+            filter: drop-shadow(0 0 30px rgba(212, 175, 55, 0.6)) drop-shadow(0 0 60px rgba(212, 175, 55, 0.3));
+            animation: gentleSway 8s ease-in-out infinite;
+        }
+
+        @keyframes gentleSway {
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            25% {
+                transform: translateY(-8px) rotate(1deg);
+            }
+
+            50% {
+                transform: translateY(-3px) rotate(-0.5deg);
+            }
+
+            75% {
+                transform: translateY(-10px) rotate(0.5deg);
+            }
+        }
+
+        /* Sparkle Particles */
+        .sparkle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: var(--gold-light);
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0;
+            box-shadow: 0 0 10px var(--gold-light), 0 0 20px var(--gold);
+        }
+
+        .sparkle.active {
+            animation: sparkleFloat 1.5s ease-out forwards;
+        }
+
+        @keyframes sparkleFloat {
+            0% {
+                opacity: 1;
+                transform: scale(1) translate(0, 0);
+            }
+
+            100% {
+                opacity: 0;
+                transform: scale(0.3) translate(var(--tx), var(--ty));
+            }
+        }
+
+        .hero-content {
+            max-width: 750px;
+            text-align: center;
+            z-index: 1;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: var(--burgundy);
+            color: var(--gold-light);
+            padding: 10px 30px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            border: 2px solid var(--gold);
+            box-shadow: 0 4px 15px rgba(114, 47, 55, 0.3);
+        }
+
+        .hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-weight: 900;
+            line-height: 1.15;
+            margin-bottom: 25px;
+            color: var(--dark);
+        }
+
+        .hero h1 .highlight {
+            color: var(--cherry);
+            position: relative;
+        }
+
+        .hero h1 .highlight::after {
+            content: '';
+            position: absolute;
+            bottom: 5px;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background: linear-gradient(90deg, var(--gold-light), var(--gold));
+            opacity: 0.4;
+            z-index: -1;
+        }
+
+        .hero p {
+            font-size: 1.15rem;
+            color: #555;
+            max-width: 520px;
+            margin: 0 auto 40px;
+            line-height: 1.8;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 18px 40px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            border-radius: 50px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(180deg, var(--gold-light) 0%, var(--gold) 100%);
+            color: var(--dark);
+            border: 3px solid var(--dark);
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.5);
+        }
+
+        .btn-secondary {
+            background: var(--burgundy);
+            color: var(--cream);
+            border: 3px solid var(--burgundy);
+            box-shadow: 0 6px 20px rgba(114, 47, 55, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: var(--cherry);
+            border-color: var(--cherry);
+            transform: translateY(-3px);
+        }
+
+        /* Decorative Vinyl Records */
+        .vinyl-decoration {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background:
+                radial-gradient(circle at center, #1a1a1a 15%, transparent 15%),
+                radial-gradient(circle at center, var(--gold) 16%, transparent 16%),
+                radial-gradient(circle at center, #1a1a1a 17%, transparent 17%),
+                repeating-radial-gradient(circle at center, #1a1a1a, #1a1a1a 2px, #2a2a2a 2px, #2a2a2a 4px);
+            opacity: 0.15;
+            animation: spin 20s linear infinite;
+        }
+
+        .vinyl-decoration.left {
+            left: 5%;
+            top: 30%;
+        }
+
+        .vinyl-decoration.right {
+            right: 5%;
+            bottom: 25%;
+            animation-direction: reverse;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Stats Section - Chrome Jukebox Panel */
+        .stats {
+            padding: 70px 5%;
+            background: linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%);
+            border-top: 4px solid var(--gold);
+            border-bottom: 4px solid var(--gold);
+        }
+
+        .stats-grid {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 30px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 25px;
+            background: linear-gradient(180deg, rgba(212, 175, 55, 0.1) 0%, transparent 100%);
+            border: 2px solid rgba(212, 175, 55, 0.3);
+            border-radius: 15px;
+        }
+
+        .stat-item h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--gold-light);
+            margin-bottom: 8px;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+
+        .stat-item p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 100px 5%;
+            background: var(--cream);
+        }
+
+        .section-header {
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto 60px;
+        }
+
+        .section-tag {
+            display: inline-block;
+            background: var(--gold);
+            color: var(--dark);
+            padding: 8px 25px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .section-header h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2rem, 4vw, 2.8rem);
+            font-weight: 900;
+            color: var(--dark);
+        }
+
+        .features-grid {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+        }
+
+        .feature-card {
+            background: #fff;
+            border: 3px solid var(--dark);
+            border-radius: 20px;
+            padding: 35px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--gold), var(--cherry));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--dark);
+        }
+
+        .feature-card p {
+            color: #666;
+            line-height: 1.7;
+        }
+
+        /* Coming Soon Section */
+        .coming-soon {
+            padding: 70px 5%;
+            background: linear-gradient(135deg, var(--burgundy) 0%, var(--cherry) 100%);
+            text-align: center;
+        }
+
+        .coming-soon h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            color: var(--gold-light);
+            margin-bottom: 15px;
+        }
+
+        .coming-soon>p {
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 40px;
+        }
+
+        .coming-soon-grid {
+            max-width: 800px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .coming-item {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 25px 15px;
+            border-radius: 15px;
+            border: 2px solid rgba(212, 175, 55, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .coming-item:hover {
+            border-color: var(--gold);
+            transform: translateY(-5px);
+        }
+
+        .coming-item .icon {
+            font-size: 2rem;
+            margin-bottom: 12px;
+        }
+
+        .coming-item h4 {
+            color: var(--cream);
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .coming-item span {
+            color: var(--gold-light);
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        /* How It Works */
+        .how-it-works {
+            padding: 100px 5%;
+            background: #FFFBF0;
+        }
+
+        .steps-container {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .step {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+            background: #fff;
+            padding: 30px;
+            border-radius: 20px;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .step:hover {
+            border-color: var(--gold);
+            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.15);
+        }
+
+        .step-number {
+            min-width: 60px;
+            height: 60px;
+            background: var(--gold);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--dark);
+        }
+
+        .step-content h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: var(--dark);
+        }
+
+        .step-content p {
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        /* Investor Section */
+        .investors {
+            padding: 100px 5%;
+            background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
+            color: var(--cream);
+        }
+
+        .investor-content {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .investor-text h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 900;
+            margin-bottom: 20px;
+        }
+
+        .investor-text h2 span {
+            color: var(--gold-light);
+        }
+
+        .investor-text p {
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 25px;
+            line-height: 1.7;
+        }
+
+        .investor-highlights {
+            list-style: none;
+        }
+
+        .investor-highlights li {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+
+        .investor-highlights li::before {
+            content: '✦';
+            color: var(--gold);
+            font-size: 0.8rem;
+        }
+
+        .investor-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .metric-card {
+            background: rgba(212, 175, 55, 0.1);
+            border: 2px solid rgba(212, 175, 55, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            border-color: var(--gold);
+        }
+
+        .metric-card h4 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            color: var(--gold-light);
+            margin-bottom: 5px;
+        }
+
+        .metric-card p {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* CTA Section */
+        .cta {
+            padding: 100px 5%;
+            text-align: center;
+            background: var(--cream);
+        }
+
+        .cta h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            font-weight: 900;
+            margin-bottom: 15px;
+            color: var(--dark);
+        }
+
+        .cta p {
+            color: #666;
+            font-size: 1.05rem;
+            max-width: 450px;
+            margin: 0 auto 35px;
+        }
+
+        /* Footer */
+        footer {
+            padding: 50px 5% 25px;
+            background: #1a1a1a;
+            color: var(--cream);
+            border-top: 4px solid var(--gold);
+        }
+
+        .footer-content {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 40px;
+        }
+
+        .footer-brand img {
+            height: 45px;
+            margin-bottom: 15px;
+            filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.4));
+        }
+
+        .footer-brand p {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.85rem;
+        }
+
+        .footer-links h4 {
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--gold);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .footer-links a {
+            display: block;
+            color: rgba(255, 255, 255, 0.6);
+            text-decoration: none;
+            margin-bottom: 10px;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--gold-light);
+        }
+
+        .footer-bottom {
+            max-width: 1000px;
+            margin: 35px auto 0;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 0.8rem;
+        }
+
+        /* Mobile */
+        .mobile-menu-btn {
+            display: none;
+            background: var(--gold);
+            border: none;
+            color: var(--dark);
+            font-size: 1.2rem;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 1024px) {
+            .investor-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .investor-highlights {
+                display: inline-block;
+                text-align: left;
+            }
+
+            .coming-soon-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .logo-container {
+                width: 200px;
+                height: 200px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .step {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .footer-bottom {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .vinyl-decoration {
+                display: none;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .investor-metrics {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+            }
+
+            .coming-soon-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-logo">
+            <img src="jukebob_logo.png" alt="JukeBob">
+        </div>
+        <div class="nav-links">
+            <a href="#features">Features</a>
+            <a href="#how-it-works">How It Works</a>
+            <a href="#investors">Investors</a>
+            <a href="http://localhost:8080" class="nav-cta">▶ Play Now</a>
+        </div>
+        <button class="mobile-menu-btn">☰</button>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="hero-section">
+        <div class="jukebox-frame"></div>
+        <div class="vinyl-decoration left"></div>
+        <div class="vinyl-decoration right"></div>
+
+        <!-- Logo with Sparkles -->
+        <div class="logo-container" id="logo-container">
+            <img src="jukebob_logo.png" alt="" class="floating-logo" id="floating-logo">
+        </div>
+
+        <div class="hero-content">
+            <div class="hero-badge">★ Now Playing ★</div>
+            <h1>
+                Your Music.<br>
+                <span class="highlight">Your Rules.</span><br>
+                Your Party.
+            </h1>
+            <p>
+                JukeBob transforms any venue into an interactive music experience.
+                Request songs, tip artists, discover events, and connect with the music you love.
+            </p>
+            <div class="hero-buttons">
+                <a href="http://localhost:8080" class="btn btn-primary">
+                    🎵 Start Playing
+                </a>
+                <a href="#investors" class="btn btn-secondary">
+                    📊 Investor Info
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="stats">
+        <div class="stats-grid">
+            <div class="stat-item">
+                <h3>10K+</h3>
+                <p>Song Requests</p>
+            </div>
+            <div class="stat-item">
+                <h3>500+</h3>
+                <p>Artists</p>
+            </div>
+            <div class="stat-item">
+                <h3>8</h3>
+                <p>Cities</p>
+            </div>
+            <div class="stat-item">
+                <h3>₹2L+</h3>
+                <p>Tips Earned</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section class="features" id="features">
+        <div class="section-header">
+            <span class="section-tag">Features</span>
+            <h2>Everything Music Lovers Need</h2>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🎵</div>
+                <h3>Interactive Jukebox</h3>
+                <p>Create or join party sessions. Request songs, vote on the playlist, and tip artists in real-time.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎉</div>
+                <h3>WTPT - Event Discovery</h3>
+                <p>Find concerts, DJ nights, and live shows across 8 major Indian cities with instant booking.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🤖</div>
+                <h3>AI DJ Mode</h3>
+                <p>Let our AI curate the perfect playlist based on crowd preferences and real-time engagement.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎮</div>
+                <h3>Music Games</h3>
+                <p>Play multiplayer games between sets. Challenge friends to music trivia while waiting for your song!
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Coming Soon -->
+    <section class="coming-soon">
+        <h2>✦ Coming Soon ✦</h2>
+        <p>New features launching throughout 2026</p>
+        <div class="coming-soon-grid">
+            <div class="coming-item">
+                <div class="icon">🎧</div>
+                <h4>Live Streaming</h4>
+                <span>Q2 2026</span>
+            </div>
+            <div class="coming-item">
+                <div class="icon">💳</div>
+                <h4>In-App Payments</h4>
+                <span>Q2 2026</span>
+            </div>
+            <div class="coming-item">
+                <div class="icon">🏆</div>
+                <h4>Leaderboards</h4>
+                <span>Q3 2026</span>
+            </div>
+            <div class="coming-item">
+                <div class="icon">🎤</div>
+                <h4>Karaoke Mode</h4>
+                <span>Q3 2026</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="how-it-works" id="how-it-works">
+        <div class="section-header">
+            <span class="section-tag">How It Works</span>
+            <h2>Simple & Elegant</h2>
+        </div>
+        <div class="steps-container">
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h3>Scan & Join</h3>
+                    <p>Scan the QR code to instantly join. No app download needed.</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h3>Request & Tip</h3>
+                    <p>Browse songs, make requests, add tips to boost to VIP queue.</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h3>Enjoy & Engage</h3>
+                    <p>Watch your song climb the queue, vote, and enjoy the experience.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Investor Section -->
+    <section class="investors" id="investors">
+        <div class="section-header" style="margin-bottom: 50px;">
+            <span class="section-tag">Investment</span>
+            <h2 style="color: var(--cream);">Join Our Journey</h2>
+        </div>
+        <div class="investor-content">
+            <div class="investor-text">
+                <h2>Disrupting the <span>₹15,000 Cr</span> Market</h2>
+                <p>India's live music scene is booming. With 500M+ smartphone users, JukeBob is positioned to lead.</p>
+                <ul class="investor-highlights">
+                    <li>5% platform fee on tips</li>
+                    <li>Event ticketing partnerships</li>
+                    <li>Premium venue subscriptions</li>
+                    <li>Sponsored playlist placements</li>
+                    <li>B2B analytics for venues</li>
+                </ul>
+            </div>
+            <div class="investor-metrics">
+                <div class="metric-card">
+                    <h4>40%</h4>
+                    <p>MoM Growth</p>
+                </div>
+                <div class="metric-card">
+                    <h4>₹15K Cr</h4>
+                    <p>Market Size</p>
+                </div>
+                <div class="metric-card">
+                    <h4>85%</h4>
+                    <p>Retention</p>
+                </div>
+                <div class="metric-card">
+                    <h4>2026</h4>
+                    <p>Pan-India</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta">
+        <h2>Ready to Play?</h2>
+        <p>Join the music revolution. Everyone's welcome.</p>
+        <div class="hero-buttons">
+            <a href="http://localhost:8080" class="btn btn-primary">🚀 Launch JukeBob</a>
+            <a href="mailto:invest@jukebob.com" class="btn btn-secondary">📧 Contact Us</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-brand">
+                <img src="jukebob_logo.png" alt="JukeBob">
+                <p>Revolutionizing India's live music experience.</p>
+            </div>
+            <div class="footer-links">
+                <h4>Product</h4>
+                <a href="http://localhost:8080">Web App</a>
+                <a href="#features">Features</a>
+                <a href="http://localhost:8080/admin.html">Admin</a>
+            </div>
+            <div class="footer-links">
+                <h4>Company</h4>
+                <a href="#">About Us</a>
+                <a href="#">Careers</a>
+                <a href="#">Press</a>
+            </div>
+            <div class="footer-links">
+                <h4>Legal</h4>
+                <a href="#">Privacy</a>
+                <a href="#">Terms</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 JukeBob. Made with ❤️ in India</p>
+        </div>
+    </footer>
+
+    <script>
+        const heroSection = document.getElementById('hero-section');
+        const logoContainer = document.getElementById('logo-container');
+        const floatingLogo = document.getElementById('floating-logo');
+
+        // Position logo
+        let logoX = (heroSection.offsetWidth - 280) / 2 + 300;
+        let logoY = 150;
+        let targetX = logoX;
+        let targetY = logoY;
+        let velocityX = 0.3;
+        let velocityY = 0.2;
+
+        logoContainer.style.left = logoX + 'px';
+        logoContainer.style.top = logoY + 'px';
+
+        // Create sparkle element
+        function createSparkle(x, y) {
+            const sparkle = document.createElement('div');
+            sparkle.className = 'sparkle';
+            sparkle.style.left = (x + Math.random() * 100) + 'px';
+            sparkle.style.top = (y + Math.random() * 100) + 'px';
+            sparkle.style.setProperty('--tx', (Math.random() - 0.5) * 100 + 'px');
+            sparkle.style.setProperty('--ty', (Math.random() - 0.5) * 100 + 'px');
+            sparkle.style.width = (4 + Math.random() * 6) + 'px';
+            sparkle.style.height = sparkle.style.width;
+            heroSection.appendChild(sparkle);
+
+            setTimeout(() => sparkle.classList.add('active'), 10);
+            setTimeout(() => sparkle.remove(), 1500);
+        }
+
+        // Gentle logo animation
+        function animateLogo() {
+            // Slow, elegant movement
+            logoX += velocityX;
+            logoY += velocityY;
+
+            // Bounce off edges gently
+            if (logoX <= 50 || logoX >= heroSection.offsetWidth - 330) {
+                velocityX *= -1;
+                // Create sparkles on bounce
+                for (let i = 0; i < 5; i++) {
+                    createSparkle(logoX, logoY);
+                }
+            }
+            if (logoY <= 100 || logoY >= heroSection.offsetHeight - 330) {
+                velocityY *= -1;
+                for (let i = 0; i < 5; i++) {
+                    createSparkle(logoX, logoY);
+                }
+            }
+
+            // Occasional random sparkles
+            if (Math.random() < 0.03) {
+                createSparkle(logoX, logoY);
+            }
+
+            logoContainer.style.left = logoX + 'px';
+            logoContainer.style.top = logoY + 'px';
+
+            requestAnimationFrame(animateLogo);
+        }
+
+        animateLogo();
+
+        // Push logo away when cursor is near
+        heroSection.addEventListener('mousemove', (e) => {
+            const rect = heroSection.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            const logoCenterX = logoX + 140;
+            const logoCenterY = logoY + 140;
+
+            const distX = mouseX - logoCenterX;
+            const distY = mouseY - logoCenterY;
+            const distance = Math.sqrt(distX * distX + distY * distY);
+
+            if (distance < 200) {
+                const angle = Math.atan2(distY, distX);
+                const push = (200 - distance) / 400;
+                velocityX -= Math.cos(angle) * push;
+                velocityY -= Math.sin(angle) * push;
+
+                // Limit velocity for elegance
+                const maxVel = 2;
+                velocityX = Math.max(-maxVel, Math.min(maxVel, velocityX));
+                velocityY = Math.max(-maxVel, Math.min(maxVel, velocityY));
+
+                // Sparkles when pushed
+                if (Math.random() < 0.3) {
+                    createSparkle(logoX, logoY);
+                }
+            }
+        });
+
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href'))?.scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+
+        // Scroll animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.2 });
+
+        document.querySelectorAll('.stat-item, .feature-card, .step, .metric-card, .coming-item').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'all 0.5s ease';
+            observer.observe(el);
+        });
+    </script>
+</body>
+
+</html>

@@ -802,6 +802,334 @@ async def restart_game(restart: RestartRequest):
         
         return {"success": True, "restarted": False, "pending": True}
 
+# ============== WTPT (Where's the Party Tonight) ==============
+
+from wtpt import scraper, create_booking, get_bookings, get_booking, generate_invoice_html, CITIES
+from fastapi.responses import HTMLResponse
+
+class WTPTBooking(BaseModel):
+    event_id: str
+    event_title: str
+    platform: str
+    platform_booking_id: str
+    user_name: str
+    user_email: str
+    user_phone: str
+    tickets: int = 1
+    total_amount: float = 0
+    event_date: str
+    venue: str
+
+@app.get("/api/wtpt/events")
+async def get_wtpt_events(city: str = "mumbai", category: Optional[str] = None):
+    """Get music events from all platforms"""
+    try:
+        events = scraper.get_all_events(city, category)
+        
+        # If no events found (scraping may have failed), return mock data
+        if not events:
+            events = scraper.get_mock_events(city)
+        
+        return {
+            "success": True,
+            "city": city,
+            "category": category,
+            "count": len(events),
+            "events": events
+        }
+    except Exception as e:
+        # Fallback to mock data
+        return {
+            "success": True,
+            "city": city,
+            "category": category,
+            "count": 4,
+            "events": scraper.get_mock_events(city),
+            "note": "Using sample data"
+        }
+
+@app.get("/api/wtpt/cities")
+async def get_wtpt_cities():
+    """Get list of supported cities"""
+    return {
+        "cities": list(CITIES.keys())
+    }
+
+@app.post("/api/wtpt/bookings")
+async def create_wtpt_booking(booking: WTPTBooking):
+    """Record a booking made through external platform"""
+    booking_record = create_booking(booking.dict())
+    return {
+        "success": True,
+        "booking": booking_record
+    }
+
+@app.get("/api/wtpt/bookings")
+async def get_wtpt_bookings(email: Optional[str] = None):
+    """Get all bookings or filter by email"""
+    bookings_list = get_bookings(email)
+    return {
+        "success": True,
+        "count": len(bookings_list),
+        "bookings": bookings_list
+    }
+
+@app.get("/api/wtpt/bookings/{booking_id}")
+async def get_wtpt_booking(booking_id: str):
+    """Get a specific booking"""
+    booking = get_booking(booking_id)
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    return booking
+
+@app.get("/api/wtpt/invoice/{booking_id}", response_class=HTMLResponse)
+async def get_wtpt_invoice(booking_id: str):
+    """Generate HTML invoice for a booking"""
+    invoice_html = generate_invoice_html(booking_id)
+    if not invoice_html:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    return HTMLResponse(content=invoice_html)
+
+# ============================================
+# TRACKER API ENDPOINTS
+# ============================================
+from tracker import (
+    create_tracker, get_all_trackers, get_tracker, 
+    update_tracker_item, delete_tracker, create_demo_tracker
+)
+from fastapi import UploadFile, File
+
+@app.post("/api/tracker/upload")
+async def upload_tracker_file(file: UploadFile = File(...)):
+    """Upload a file and create a tracker from it"""
+    try:
+        content = await file.read()
+        tracker = create_tracker(content, file.filename, file.content_type)
+        return {
+            "success": True,
+            "tracker": tracker
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error processing file: {str(e)}")
+
+@app.get("/api/tracker/list")
+async def list_trackers():
+    """Get all trackers"""
+    trackers = get_all_trackers()
+    return {
+        "success": True,
+        "count": len(trackers),
+        "trackers": trackers
+    }
+
+@app.get("/api/tracker/{tracker_id}")
+async def get_single_tracker(tracker_id: str):
+    """Get a specific tracker"""
+    tracker = get_tracker(tracker_id)
+    if not tracker:
+        raise HTTPException(status_code=404, detail="Tracker not found")
+    return tracker
+
+class TrackerItemUpdate(BaseModel):
+    item_id: str
+    completed: bool
+
+@app.put("/api/tracker/{tracker_id}/item")
+async def update_item(tracker_id: str, update: TrackerItemUpdate):
+    """Update a tracker item's completion status"""
+    tracker = update_tracker_item(tracker_id, update.item_id, update.completed)
+    if not tracker:
+        raise HTTPException(status_code=404, detail="Tracker or item not found")
+    return {"success": True, "tracker": tracker}
+
+@app.delete("/api/tracker/{tracker_id}")
+async def remove_tracker(tracker_id: str):
+    """Delete a tracker"""
+    success = delete_tracker(tracker_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Tracker not found")
+    return {"success": True}
+
+@app.post("/api/tracker/demo")
+async def create_demo():
+    """Create a demo tracker with psychology theorists"""
+    tracker = create_demo_tracker()
+    return {"success": True, "tracker": tracker}
+
+# ============== ADMIN DASHBOARD ==============
+from admin import (
+    verify_admin, verify_session, logout,
+    create_event, get_all_events, get_approved_events, update_event, approve_event, delete_event,
+    create_game as admin_create_game, get_all_games as admin_get_all_games, get_approved_games, approve_game, delete_game as admin_delete_game
+)
+
+class AdminLogin(BaseModel):
+    username: str
+    password: str
+
+class AdminEventCreate(BaseModel):
+    title: str
+    link: str
+    image_url: str = ""
+    tag: str = "available"  # available, filling_soon, sold_out
+    event_datetime: str
+    venue: str
+    city: str
+    price: str
+
+class AdminEventUpdate(BaseModel):
+    title: Optional[str] = None
+    link: Optional[str] = None
+    image_url: Optional[str] = None
+    tag: Optional[str] = None
+    event_datetime: Optional[str] = None
+    venue: Optional[str] = None
+    city: Optional[str] = None
+    price: Optional[str] = None
+    approved: Optional[bool] = None
+
+class AdminGameCreate(BaseModel):
+    name: str
+    description: str
+    image_url: str = ""
+    game_type: str = "trivia"
+
+@app.post("/api/admin/login")
+async def admin_login(login: AdminLogin):
+    """Admin login - returns session token"""
+    token = verify_admin(login.username, login.password)
+    if not token:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    return {"success": True, "token": token}
+
+@app.post("/api/admin/logout")
+async def admin_logout(token: str):
+    """Admin logout - invalidates session"""
+    logout(token)
+    return {"success": True}
+
+@app.get("/api/admin/verify")
+async def admin_verify(token: str):
+    """Verify admin session"""
+    if not verify_session(token):
+        raise HTTPException(status_code=401, detail="Invalid or expired session")
+    return {"valid": True}
+
+# WTPT Event Management
+@app.post("/api/admin/events")
+async def admin_create_event(event: AdminEventCreate, token: str):
+    """Create a new WTPT event"""
+    if not verify_session(token):
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    new_event = create_event(
+        title=event.title,
+        link=event.link,
+        image_url=event.image_url,
+        tag=event.tag,
+        event_datetime=event.event_datetime,
+        venue=event.venue,
+        city=event.city,
+        price=event.price
+    )
+    return {"success": True, "event": new_event}
+
+@app.get("/api/admin/events")
+async def admin_list_events(token: str):
+    """Get all events for admin dashboard"""
+    if not verify_session(token):
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    return {"events": get_all_events()}
+
+@app.put("/api/admin/events/{event_id}")
+async def admin_update_event(event_id: str, event: AdminEventUpdate, token: str):
+    """Update an event"""
+    if not verify_session(token):
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    updates = {k: v for k, v in event.dict().items() if v is not None}
+    updated = update_event(event_id, updates)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Event not found")
+    return {"success": True, "event": updated}
+
+@app.post("/api/admin/events/{event_id}/approve")
+async def admin_approve_event(event_id: str, token: str, approved: bool = True):
+    """Approve or unapprove an event"""
+    if not verify_session(token):
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    event = approve_event(event_id, approved)
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    return {"success": True, "event": event}
+
+@app.delete("/api/admin/events/{event_id}")
+async def admin_remove_event(event_id: str, token: str):
+    """Delete an event"""
+    if not verify_session(token):
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    success = delete_event(event_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Event not found")
+    return {"success": True}
+
+# Game Management
+@app.post("/api/admin/games")
+async def admin_add_game(game: AdminGameCreate, token: str):
+    """Add a new game"""
+    if not verify_session(token):
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    new_game = admin_create_game(
+        name=game.name,
+        description=game.description,
+        image_url=game.image_url,
+        game_type=game.game_type
+    )
+    return {"success": True, "game": new_game}
+
+@app.get("/api/admin/games")
+async def admin_list_games(token: str):
+    """Get all games for admin dashboard"""
+    if not verify_session(token):
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    return {"games": admin_get_all_games()}
+
+@app.post("/api/admin/games/{game_id}/approve")
+async def admin_approve_game(game_id: str, token: str, approved: bool = True):
+    """Approve or unapprove a game"""
+    if not verify_session(token):
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    game = approve_game(game_id, approved)
+    if not game:
+        raise HTTPException(status_code=404, detail="Game not found")
+    return {"success": True, "game": game}
+
+@app.delete("/api/admin/games/{game_id}")
+async def admin_remove_game(game_id: str, token: str):
+    """Delete a game"""
+    if not verify_session(token):
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    success = admin_delete_game(game_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Game not found")
+    return {"success": True}
+
+# Public endpoints for approved content
+@app.get("/api/wtpt/approved-events")
+async def get_wtpt_approved_events(city: Optional[str] = None):
+    """Get approved and non-expired events for the live app"""
+    return {"events": get_approved_events(city)}
+
+@app.get("/api/games/approved")
+async def get_games_approved():
+    """Get approved games for the live app"""
+    return {"games": get_approved_games()}
+
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles as BaseStaticFiles
 
@@ -813,8 +1141,11 @@ class StaticFilesNoCache(BaseStaticFiles):
         response.headers["Expires"] = "0"
         return response
 
-app.mount("/", StaticFilesNoCache(directory="../frontend", html=True), name="frontend")
+import pathlib
+BACKEND_DIR = pathlib.Path(__file__).parent.resolve()
+FRONTEND_DIR = BACKEND_DIR.parent / "frontend"
+app.mount("/", StaticFilesNoCache(directory=str(FRONTEND_DIR), html=True), name="frontend")
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=5000)
+    uvicorn.run(app, host="0.0.0.0", port=8080)

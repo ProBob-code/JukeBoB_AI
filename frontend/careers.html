@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Careers | JukeBob</title>
+    <link rel="icon" type="image/png" href="icon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --brand-yellow: #FFD93D;
+            --brand-orange: #FF9F1C;
+            --brand-dark: #0a0a0f;
+            --brand-black: #1A1A1A;
+            --pure-white: #FFFFFF;
+            --gray-border: rgba(255, 255, 255, 0.1);
+            --accent-green: #22C55E;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--brand-dark);
+            color: var(--pure-white);
+            line-height: 1.7;
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 18px 6%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(10, 10, 15, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--gray-border);
+        }
+
+        .nav-logo img {
+            height: 55px;
+            filter: drop-shadow(0 0 20px rgba(255, 217, 61, 0.4));
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 35px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--brand-yellow);
+        }
+
+        .nav-cta {
+            background: var(--brand-yellow);
+            padding: 12px 28px;
+            border-radius: 50px;
+            color: var(--brand-black) !important;
+            font-weight: 700;
+        }
+
+        .page-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 140px 6% 80px;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            color: var(--brand-yellow);
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 50px 0 20px;
+            color: var(--pure-white);
+        }
+
+        p {
+            color: rgba(255, 255, 255, 0.75);
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+
+        .job-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--gray-border);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .job-card:hover {
+            border-color: var(--brand-yellow);
+            transform: translateX(5px);
+        }
+
+        .job-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .job-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .job-tag {
+            background: var(--accent-green);
+            color: var(--brand-black);
+            padding: 5px 15px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .job-meta {
+            display: flex;
+            gap: 20px;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+
+        .job-description {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .apply-btn {
+            display: inline-block;
+            margin-top: 15px;
+            background: linear-gradient(135deg, var(--brand-yellow), var(--brand-orange));
+            color: var(--brand-black);
+            padding: 12px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 700;
+            transition: all 0.3s ease;
+        }
+
+        .apply-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(255, 217, 61, 0.4);
+        }
+
+        .perks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .perk-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--gray-border);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .perk-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .perk-item h4 {
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .perk-item p {
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        footer {
+            padding: 40px 6%;
+            text-align: center;
+            border-top: 1px solid var(--gray-border);
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        footer a {
+            color: var(--brand-yellow);
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <a href="landing.html" class="nav-logo">
+            <img src="jukebob_logo.png" alt="JukeBob">
+        </a>
+        <div class="nav-links">
+            <a href="landing.html">Home</a>
+            <a href="about.html">About</a>
+            <a href="careers.html">Careers</a>
+            <a href="http://localhost:8080" class="nav-cta">Launch App</a>
+        </div>
+    </nav>
+
+    <div class="page-content">
+        <h1>Join the Party</h1>
+        <p>
+            We're building the future of live music experiences. If you're passionate about music,
+            technology, and creating amazing experiences, we want to hear from you.
+        </p>
+
+        <h2>Why JukeBob?</h2>
+        <div class="perks-grid">
+            <div class="perk-item">
+                <div class="perk-icon">🎵</div>
+                <h4>Music Culture</h4>
+                <p>Work alongside music lovers</p>
+            </div>
+            <div class="perk-item">
+                <div class="perk-icon">🚀</div>
+                <h4>Fast Growth</h4>
+                <p>Early-stage startup energy</p>
+            </div>
+            <div class="perk-item">
+                <div class="perk-icon">💰</div>
+                <h4>Equity</h4>
+                <p>Ownership in the company</p>
+            </div>
+            <div class="perk-item">
+                <div class="perk-icon">🏠</div>
+                <h4>Remote First</h4>
+                <p>Work from anywhere</p>
+            </div>
+        </div>
+
+        <h2>Open Positions</h2>
+
+        <div class="job-card">
+            <div class="job-header">
+                <div class="job-title">Full Stack Developer</div>
+                <span class="job-tag">Hiring</span>
+            </div>
+            <div class="job-meta">
+                <span>📍 Remote / Bangalore</span>
+                <span>⏰ Full-time</span>
+                <span>💼 2-5 years</span>
+            </div>
+            <p class="job-description">
+                Build and scale our platform using Python, FastAPI, and modern frontend technologies.
+                Work on real-time systems, audio processing, and interactive web experiences.
+            </p>
+            <a href="mailto:careers@jukebob.com?subject=Full Stack Developer Application" class="apply-btn">Apply
+                Now</a>
+        </div>
+
+        <div class="job-card">
+            <div class="job-header">
+                <div class="job-title">Product Designer</div>
+                <span class="job-tag">Hiring</span>
+            </div>
+            <div class="job-meta">
+                <span>📍 Remote</span>
+                <span>⏰ Full-time</span>
+                <span>💼 3+ years</span>
+            </div>
+            <p class="job-description">
+                Design beautiful, intuitive experiences for our mobile and web apps.
+                Shape how millions of people interact with music at live venues.
+            </p>
+            <a href="mailto:careers@jukebob.com?subject=Product Designer Application" class="apply-btn">Apply Now</a>
+        </div>
+
+        <div class="job-card">
+            <div class="job-header">
+                <div class="job-title">Growth & Marketing Lead</div>
+                <span class="job-tag">Hiring</span>
+            </div>
+            <div class="job-meta">
+                <span>📍 Mumbai / Delhi</span>
+                <span>⏰ Full-time</span>
+                <span>💼 4+ years</span>
+            </div>
+            <p class="job-description">
+                Drive user acquisition and venue partnerships. Own our go-to-market strategy
+                and help us become the go-to platform for live music experiences in India.
+            </p>
+            <a href="mailto:careers@jukebob.com?subject=Growth Lead Application" class="apply-btn">Apply Now</a>
+        </div>
+
+        <h2>Don't see your role?</h2>
+        <p>
+            We're always looking for talented people. Send us your resume at
+            <a href="mailto:careers@jukebob.com" style="color: var(--brand-yellow);">careers@jukebob.com</a>
+            and tell us what you'd bring to the party.
+        </p>
+    </div>
+
+    <footer>
+        <p>© 2026 JukeBob. All rights reserved. | <a href="landing.html">Back to Home</a></p>
+    </footer>
+</body>
+
+</html>

@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JukeBob Admin Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --brand-yellow: #FFD93D;
+            --brand-orange: #FF9F1C;
+            --brand-dark: #0a0a0f;
+            --brand-black: #1A1A1A;
+            --neon-pink: #FF2D95;
+            --neon-purple: #A855F7;
+            --accent-green: #22C55E;
+            --accent-red: #EF4444;
+            --pure-white: #FFFFFF;
+            --gray-border: rgba(255, 255, 255, 0.1);
+            --glow-yellow: 0 0 20px rgba(255, 217, 61, 0.4), 0 0 40px rgba(255, 217, 61, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--brand-dark);
+            min-height: 100vh;
+            color: var(--pure-white);
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(ellipse at 20% 20%, rgba(255, 217, 61, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(168, 85, 247, 0.06) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Login Page */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .login-box {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 45px;
+            width: 100%;
+            max-width: 420px;
+            border: 1px solid var(--gray-border);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        .login-logo {
+            display: block;
+            width: 120px;
+            margin: 0 auto 25px;
+            filter: drop-shadow(0 0 20px rgba(255, 217, 61, 0.4));
+        }
+
+        .login-box h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            color: var(--brand-yellow);
+            font-weight: 800;
+        }
+
+        .login-box p {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid var(--gray-border);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--pure-white);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--brand-yellow);
+            box-shadow: 0 0 0 3px rgba(255, 217, 61, 0.1);
+        }
+
+        /* Fix dropdown options visibility */
+        .form-group select option {
+            background: #1a1a1a;
+            color: #ffffff;
+            padding: 10px;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--brand-yellow), var(--brand-orange));
+            color: var(--brand-black);
+            width: 100%;
+            box-shadow: var(--glow-yellow);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 30px rgba(255, 217, 61, 0.6), 0 0 60px rgba(255, 217, 61, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--accent-green), #10B981);
+            color: var(--pure-white);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--accent-red), #DC2626);
+            color: var(--pure-white);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--pure-white);
+            border: 1px solid var(--gray-border);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--brand-yellow);
+            color: var(--brand-yellow);
+        }
+
+        .btn-sm {
+            padding: 10px 18px;
+            font-size: 0.85rem;
+        }
+
+        .error-msg {
+            color: var(--accent-red);
+            text-align: center;
+            margin-top: 15px;
+            display: none;
+        }
+
+        /* Dashboard Layout */
+        .dashboard-container {
+            display: none;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .dashboard-header h1 {
+            color: #ff6b6b;
+        }
+
+        .tab-nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .tab-btn {
+            padding: 12px 25px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            background: transparent;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+            border-color: #ff6b6b;
+        }
+
+        .tab-btn:hover:not(.active) {
+            border-color: #ff6b6b;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Event Form */
+        .add-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .add-section h2 {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        /* Event List */
+        .list-section h2 {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .event-card,
+        .game-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .event-card.expired {
+            opacity: 0.5;
+            border-color: rgba(255, 0, 0, 0.3);
+        }
+
+        .event-card.approved {
+            border-color: rgba(76, 175, 80, 0.5);
+        }
+
+        .event-image {
+            width: 100px;
+            height: 100px;
+            border-radius: 10px;
+            object-fit: cover;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .event-details {
+            flex: 1;
+        }
+
+        .event-details h3 {
+            margin-bottom: 8px;
+            color: #fff;
+        }
+
+        .event-details p {
+            color: #aaa;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        .event-tag {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .tag-available {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4CAF50;
+        }
+
+        .tag-filling_soon {
+            background: rgba(255, 152, 0, 0.2);
+            color: #FF9800;
+        }
+
+        .tag-sold_out {
+            background: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+        }
+
+        .event-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .status-approved {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4CAF50;
+        }
+
+        .status-pending {
+            background: rgba(255, 152, 0, 0.2);
+            color: #FF9800;
+        }
+
+        .status-expired {
+            background: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+        }
+
+        .no-items {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 10px;
+            background: #333;
+            color: #fff;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+            display: none;
+        }
+
+        .toast.success {
+            background: #4CAF50;
+        }
+
+        .toast.error {
+            background: #f44336;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .event-card {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .event-actions {
+                flex-direction: row;
+                justify-content: center;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Login Page -->
+    <div id="login-page" class="login-container">
+        <div class="login-box">
+            <img src="jukebob_logo.png" alt="JukeBob" class="login-logo">
+            <h1>Admin Dashboard</h1>
+            <p>Enter your credentials to access the dashboard</p>
+
+            <form id="login-form">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="username" placeholder="Enter username" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="password" placeholder="Enter password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">🔐 Login</button>
+                <p id="login-error" class="error-msg">Invalid credentials</p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard" class="dashboard-container">
+        <div class="dashboard-header">
+            <h1>🎵 JukeBob Admin Dashboard</h1>
+            <button class="btn btn-secondary" onclick="logout()">🚪 Logout</button>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="tab-nav">
+            <button class="tab-btn active" onclick="switchTab('wtpt')">🎉 WTPT Dashboard</button>
+            <button class="tab-btn" onclick="switchTab('games')">🎮 Games Dashboard</button>
+        </div>
+
+        <!-- WTPT Tab -->
+        <div id="wtpt-tab" class="tab-content active">
+            <!-- Add Event Form -->
+            <div class="add-section">
+                <h2>➕ Add New Event</h2>
+                <form id="event-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Event Title *</label>
+                            <input type="text" id="event-title" placeholder="e.g., Arijit Singh Live" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Booking Link *</label>
+                            <input type="url" id="event-link" placeholder="https://bookmyshow.com/..." required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Image URL</label>
+                            <input type="url" id="event-image" placeholder="https://example.com/image.jpg">
+                        </div>
+                        <div class="form-group">
+                            <label>Tag *</label>
+                            <select id="event-tag" required>
+                                <option value="available">🟢 Available</option>
+                                <option value="filling_soon">🟡 Filling Soon</option>
+                                <option value="sold_out">🔴 Sold Out</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Date & Time *</label>
+                            <input type="datetime-local" id="event-datetime" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Venue *</label>
+                            <input type="text" id="event-venue" placeholder="e.g., MMRDA Grounds, Mumbai" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>City *</label>
+                            <select id="event-city" required>
+                                <option value="mumbai">Mumbai</option>
+                                <option value="delhi">Delhi</option>
+                                <option value="bangalore">Bangalore</option>
+                                <option value="chennai">Chennai</option>
+                                <option value="hyderabad">Hyderabad</option>
+                                <option value="pune">Pune</option>
+                                <option value="kolkata">Kolkata</option>
+                                <option value="goa">Goa</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Price *</label>
+                            <input type="text" id="event-price" placeholder="e.g., ₹500 onwards" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success">✅ Add Event</button>
+                </form>
+            </div>
+
+            <!-- Event List -->
+            <div class="list-section">
+                <h2>📋 All Events</h2>
+                <div id="events-list">
+                    <div class="no-items">Loading events...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Games Tab -->
+        <div id="games-tab" class="tab-content">
+            <!-- Add Game Form -->
+            <div class="add-section">
+                <h2>➕ Add New Game</h2>
+                <form id="game-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Game Name *</label>
+                            <input type="text" id="game-name" placeholder="e.g., Music Trivia" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Game Type *</label>
+                            <select id="game-type" required>
+                                <option value="trivia">🧠 Trivia</option>
+                                <option value="puzzle">🧩 Puzzle</option>
+                                <option value="multiplayer">👥 Multiplayer</option>
+                                <option value="arcade">🕹️ Arcade</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Description *</label>
+                            <textarea id="game-description" rows="3" placeholder="Describe the game..."
+                                required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Image URL</label>
+                            <input type="url" id="game-image" placeholder="https://example.com/game.jpg">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success">✅ Add Game</button>
+                </form>
+            </div>
+
+            <!-- Game List -->
+            <div class="list-section">
+                <h2>🎮 All Games</h2>
+                <div id="games-list">
+                    <div class="no-items">Loading games...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast"></div>
+
+    <script>
+        let adminToken = localStorage.getItem('admin_token') || '';
+
+        // Check if already logged in
+        document.addEventListener('DOMContentLoaded', () => {
+            if (adminToken) {
+                verifySession();
+            }
+        });
+
+        async function verifySession() {
+            try {
+                const response = await fetch(`/api/admin/verify?token=${adminToken}`);
+                if (response.ok) {
+                    showDashboard();
+                } else {
+                    localStorage.removeItem('admin_token');
+                    adminToken = '';
+                }
+            } catch (e) {
+                console.error('Session verification failed');
+            }
+        }
+
+        // Login Form
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    adminToken = data.token;
+                    localStorage.setItem('admin_token', adminToken);
+                    showDashboard();
+                } else {
+                    document.getElementById('login-error').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Login failed:', error);
+                document.getElementById('login-error').style.display = 'block';
+            }
+        });
+
+        function showDashboard() {
+            document.getElementById('login-page').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+            loadEvents();
+            loadGames();
+        }
+
+        async function logout() {
+            try {
+                await fetch(`/api/admin/logout?token=${adminToken}`, { method: 'POST' });
+            } catch (e) { }
+
+            localStorage.removeItem('admin_token');
+            adminToken = '';
+            document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('login-page').style.display = 'flex';
+        }
+
+        // Tab Switching
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            event.target.classList.add('active');
+            document.getElementById(`${tab}-tab`).classList.add('active');
+        }
+
+        // Toast
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type}`;
+            toast.style.display = 'block';
+
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        // ============== EVENTS ==============
+        async function loadEvents() {
+            try {
+                const response = await fetch(`/api/admin/events?token=${adminToken}`);
+                const data = await response.json();
+
+                if (data.events && data.events.length > 0) {
+                    renderEvents(data.events);
+                } else {
+                    document.getElementById('events-list').innerHTML = '<div class="no-items">No events yet. Add your first event above!</div>';
+                }
+            } catch (error) {
+                console.error('Failed to load events:', error);
+            }
+        }
+
+        function renderEvents(events) {
+            const list = document.getElementById('events-list');
+
+            list.innerHTML = events.map(event => {
+                const statusClass = event.expired ? 'expired' : (event.approved ? 'approved' : '');
+                const statusBadge = event.expired
+                    ? '<span class="status-badge status-expired">Expired</span>'
+                    : (event.approved
+                        ? '<span class="status-badge status-approved">✅ Live</span>'
+                        : '<span class="status-badge status-pending">⏳ Pending</span>');
+
+                return `
+                    <div class="event-card ${statusClass}">
+                        <img class="event-image" src="${event.image_url || 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400'}" alt="${event.title}">
+                        <div class="event-details">
+                            <h3>${event.title}</h3>
+                            <p>📍 ${event.venue} | 🏙️ ${event.city}</p>
+                            <p>📅 ${new Date(event.event_datetime).toLocaleString()}</p>
+                            <p>💰 ${event.price}</p>
+                            <span class="event-tag tag-${event.tag}">${event.tag.replace('_', ' ')}</span>
+                        </div>
+                        <div class="event-actions">
+                            ${statusBadge}
+                            ${!event.expired ? `
+                                <button class="btn btn-sm ${event.approved ? 'btn-secondary' : 'btn-success'}" onclick="toggleApprove('${event.id}', ${!event.approved})">
+                                    ${event.approved ? '❌ Unapprove' : '✅ Approve'}
+                                </button>
+                            ` : ''}
+                            <button class="btn btn-sm btn-danger" onclick="deleteEvent('${event.id}')">🗑️ Delete</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        document.getElementById('event-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const event = {
+                title: document.getElementById('event-title').value,
+                link: document.getElementById('event-link').value,
+                image_url: document.getElementById('event-image').value,
+                tag: document.getElementById('event-tag').value,
+                event_datetime: document.getElementById('event-datetime').value,
+                venue: document.getElementById('event-venue').value,
+                city: document.getElementById('event-city').value,
+                price: document.getElementById('event-price').value
+            };
+
+            try {
+                const response = await fetch(`/api/admin/events?token=${adminToken}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(event)
+                });
+
+                if (response.ok) {
+                    showToast('Event added successfully!');
+                    e.target.reset();
+                    loadEvents();
+                } else {
+                    showToast('Failed to add event', 'error');
+                }
+            } catch (error) {
+                showToast('Error adding event', 'error');
+            }
+        });
+
+        async function toggleApprove(eventId, approve) {
+            try {
+                const response = await fetch(`/api/admin/events/${eventId}/approve?token=${adminToken}&approved=${approve}`, {
+                    method: 'POST'
+                });
+
+                if (response.ok) {
+                    showToast(approve ? 'Event approved!' : 'Event unapproved');
+                    loadEvents();
+                }
+            } catch (error) {
+                showToast('Failed to update event', 'error');
+            }
+        }
+
+        async function deleteEvent(eventId) {
+            if (!confirm('Are you sure you want to delete this event?')) return;
+
+            try {
+                const response = await fetch(`/api/admin/events/${eventId}?token=${adminToken}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    showToast('Event deleted');
+                    loadEvents();
+                }
+            } catch (error) {
+                showToast('Failed to delete event', 'error');
+            }
+        }
+
+        // ============== GAMES ==============
+        async function loadGames() {
+            try {
+                const response = await fetch(`/api/admin/games?token=${adminToken}`);
+                const data = await response.json();
+
+                if (data.games && data.games.length > 0) {
+                    renderGames(data.games);
+                } else {
+                    document.getElementById('games-list').innerHTML = '<div class="no-items">No games yet. Add your first game above!</div>';
+                }
+            } catch (error) {
+                console.error('Failed to load games:', error);
+            }
+        }
+
+        function renderGames(games) {
+            const list = document.getElementById('games-list');
+
+            list.innerHTML = games.map(game => {
+                const statusBadge = game.approved
+                    ? '<span class="status-badge status-approved">✅ Published</span>'
+                    : '<span class="status-badge status-pending">⏳ Draft</span>';
+
+                return `
+                    <div class="game-card ${game.approved ? 'approved' : ''}">
+                        <img class="event-image" src="${game.image_url || 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=400'}" alt="${game.name}">
+                        <div class="event-details">
+                            <h3>${game.name}</h3>
+                            <p>🎮 ${game.game_type}</p>
+                            <p>${game.description}</p>
+                        </div>
+                        <div class="event-actions">
+                            ${statusBadge}
+                            <button class="btn btn-sm ${game.approved ? 'btn-secondary' : 'btn-success'}" onclick="toggleGameApprove('${game.id}', ${!game.approved})">
+                                ${game.approved ? '📦 Unpublish' : '🚀 Publish'}
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteGame('${game.id}')">🗑️ Delete</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        document.getElementById('game-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const game = {
+                name: document.getElementById('game-name').value,
+                description: document.getElementById('game-description').value,
+                image_url: document.getElementById('game-image').value,
+                game_type: document.getElementById('game-type').value
+            };
+
+            try {
+                const response = await fetch(`/api/admin/games?token=${adminToken}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(game)
+                });
+
+                if (response.ok) {
+                    showToast('Game added successfully!');
+                    e.target.reset();
+                    loadGames();
+                } else {
+                    showToast('Failed to add game', 'error');
+                }
+            } catch (error) {
+                showToast('Error adding game', 'error');
+            }
+        });
+
+        async function toggleGameApprove(gameId, approve) {
+            try {
+                const response = await fetch(`/api/admin/games/${gameId}/approve?token=${adminToken}&approved=${approve}`, {
+                    method: 'POST'
+                });
+
+                if (response.ok) {
+                    showToast(approve ? 'Game published!' : 'Game unpublished');
+                    loadGames();
+                }
+            } catch (error) {
+                showToast('Failed to update game', 'error');
+            }
+        }
+
+        async function deleteGame(gameId) {
+            if (!confirm('Are you sure you want to delete this game?')) return;
+
+            try {
+                const response = await fetch(`/api/admin/games/${gameId}?token=${adminToken}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    showToast('Game deleted');
+                    loadGames();
+                }
+            } catch (error) {
+                showToast('Failed to delete game', 'error');
+            }
+        }
+    </script>
+</body>
+
+</html>
