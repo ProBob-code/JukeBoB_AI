@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from typing import Dict, List, Optional
 import json
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime
 import uuid
 import os
 from dotenv import load_dotenv
@@ -15,6 +15,7 @@ import base64
 import sys
 from pathlib import Path
 import hashlib
+import secrets
 sys.path.insert(0, str(Path(__file__).parent))
 from ai_dj import AIDJAgent
 
@@ -22,10 +23,15 @@ load_dotenv()
 
 app = FastAPI(title="Jukebox AI")
 
+# Origins are configurable; credentials are not used (auth is token-based, not
+# cookie-based), so we never combine a wildcard origin with credentials.
+_allowed = os.getenv("ALLOWED_ORIGINS", "*")
+allowed_origins = ["*"] if _allowed.strip() == "*" else [o.strip() for o in _allowed.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=allowed_origins,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -58,12 +64,52 @@ manager = ConnectionManager()
 
 party_sessions = {}
 song_requests = {}
-voting_sessions = {}
 user_wallets = {}
 ai_dj_agents = {}
 game_rooms = {}
 payment_transactions = {}
 app_revenue = {"total": 0.0, "transactions": []}
+
+# ============== PERSISTENCE ==============
+# Simple JSON snapshot store so state survives restarts. ai_dj_agents and live
+# WebSocket connections are runtime-only and rebuilt on load.
+DATA_DIR = Path(__file__).parent / "data"
+DATA_DIR.mkdir(exist_ok=True)
+STATE_FILE = DATA_DIR / "state.json"
+
+def save_state():
+    try:
+        with open(STATE_FILE, "w") as f:
+            json.dump({
+                "party_sessions": party_sessions,
+                "song_requests": song_requests,
+                "user_wallets": user_wallets,
+                "game_rooms": game_rooms,
+                "payment_transactions": payment_transactions,
+                "app_revenue": app_revenue,
+            }, f)
+    except Exception as e:
+        print(f"[persist] save failed: {e}")
+
+def load_state():
+    if not STATE_FILE.exists():
+        return
+    try:
+        with open(STATE_FILE) as f:
+            data = json.load(f)
+        party_sessions.update(data.get("party_sessions", {}))
+        song_requests.update(data.get("song_requests", {}))
+        user_wallets.update(data.get("user_wallets", {}))
+        game_rooms.update(data.get("game_rooms", {}))
+        payment_transactions.update(data.get("payment_transactions", {}))
+        app_revenue.update(data.get("app_revenue", {"total": 0.0, "transactions": []}))
+        # Rebuild runtime-only DJ agents for restored sessions
+        for sid in party_sessions:
+            ai_dj_agents[sid] = AIDJAgent()
+    except Exception as e:
+        print(f"[persist] load failed: {e}")
+
+load_state()
 
 class PartySession(BaseModel):
     name: str
@@ -76,10 +122,6 @@ class SongRequest(BaseModel):
     requester_name: str
     session_id: str
     tip_amount: float = 0.0
-
-class Vote(BaseModel):
-    session_id: str
-    request_id: str
 
 class TipRequest(BaseModel):
     session_id: str
@@ -95,56 +137,70 @@ class GameMove(BaseModel):
     room_code: str
     player_name: str
     move: int
+    player_token: str = ""
 
 class EmojiReaction(BaseModel):
     room_code: str
     player_name: str
     emoji: str
+    player_token: str = ""
 
 class PaymentCheckout(BaseModel):
     session_id: str
     payment_method: str  # "upi" or "gpay"
     upi_id: Optional[str] = None
+    host_token: str = ""
 
 def hash_password(password: str) -> str:
     return hashlib.sha256(password.encode()).hexdigest()
 
+MAX_QUEUE = 10
+
+def public_session(session: dict) -> dict:
+    """Session view safe to send to clients (no password hash or host token)."""
+    return {k: v for k, v in session.items() if k not in ("password_hash", "host_token")}
+
 @app.post("/api/sessions/create")
 async def create_session(session: PartySession):
     session_id = str(uuid.uuid4())[:8].upper()
+    host_token = secrets.token_hex(16)
     party_sessions[session_id] = {
         "id": session_id,
         "name": session.name,
         "artist_id": session.artist_id,
         "password_hash": hash_password(session.password),
+        "host_token": host_token,
         "created_at": datetime.now().isoformat(),
         "active": True,
-        "mode": "voting",
+        "mode": "queue",
         "participants": [],
-        "tips_by_member": {}
+        "tips_by_member": {},
+        "artist_earnings": 0.0,
     }
     song_requests[session_id] = []
     ai_dj_agents[session_id] = AIDJAgent()
-    
+    save_state()
+
     qr_data = f"{os.getenv('REPLIT_DEV_DOMAIN', 'localhost:5000')}/join/{session_id}"
     img = qrcode.make(qr_data)
-    
+
     buffered = BytesIO()
     img.save(buffered, format="PNG")
     qr_base64 = base64.b64encode(buffered.getvalue()).decode()
-    
+
     return {
         "session_id": session_id,
+        "host_token": host_token,
         "qr_code": qr_base64,
         "join_url": qr_data,
-        "session": party_sessions[session_id]
+        "session": public_session(party_sessions[session_id])
     }
 
 @app.get("/api/sessions/{session_id}")
 async def get_session(session_id: str):
     if session_id not in party_sessions:
         raise HTTPException(status_code=404, detail="Session not found")
-    return party_sessions[session_id]
+    return public_session(party_sessions[session_id])
 
 class JoinSession(BaseModel):
     guest_name: str
@@ -164,13 +220,14 @@ async def join_session(session_id: str, join_data: JoinSession):
     
     if join_data.guest_name not in session["participants"]:
         session["participants"].append(join_data.guest_name)
-    
+    save_state()
+
     await manager.broadcast({
         "type": "user_joined",
         "user": join_data.guest_name
     }, session_id)
-    
-    return session
+
+    return public_session(session)
 
 @app.post("/api/sessions/{session_id}/resume")
 async def resume_session(session_id: str, resume_data: ResumeSession):
@@ -188,11 +245,12 @@ async def resume_session(session_id: str, resume_data: ResumeSession):
     img.save(buffered, format="PNG")
     qr_base64 = base64.b64encode(buffered.getvalue()).decode()
     
-    # Determine user role based on artist_id
-    user_role = {"name": session["artist_id"], "role": "host"} if resume_data.password else {"name": "Guest", "role": "guest"}
-    
+    # A correct password on resume authenticates the host of the session.
+    user_role = {"name": session["artist_id"], "role": "host"}
+
     return {
-        "session": session,
+        "session": public_session(session),
+        "host_token": session.get("host_token"),
         "qr_code": qr_base64,
         "user_role": user_role
     }
@@ -201,7 +259,14 @@ async def resume_session(session_id: str, resume_data: ResumeSession):
 async def submit_request(request: SongRequest):
     if request.session_id not in party_sessions:
         raise HTTPException(status_code=404, detail="Session not found")
-    
+
+    if request.tip_amount < 0:
+        raise HTTPException(status_code=400, detail="Tip amount cannot be negative")
+
+    queued_count = sum(1 for r in song_requests[request.session_id] if r["status"] == "queued")
+    if queued_count >= MAX_QUEUE:
+        raise HTTPException(status_code=400, detail=f"Queue is full (max {MAX_QUEUE} songs)")
+
     request_id = str(uuid.uuid4())
     song_request = {
         "id": request_id,
@@ -209,9 +274,10 @@ async def submit_request(request: SongRequest):
         "artist": request.artist,
         "requester_name": request.requester_name,
         "tip_amount": request.tip_amount,
-        "votes": 0,
-        "voters": [],
-        "status": "queued",  # Changed from "pending" to "queued" - songs go directly to queue
+        # The tip pledged at request time is held until the song plays (completed)
+        # or is skipped (refunded).
+        "tip_escrow": request.tip_amount,
+        "status": "queued",  # songs go directly to the queue
         "created_at": datetime.now().isoformat()
     }
     
@@ -222,81 +288,16 @@ async def submit_request(request: SongRequest):
     session["tips_by_member"][request.requester_name] += request.tip_amount
     
     song_requests[request.session_id].append(song_request)
-    
+    save_state()
+
     # Broadcast to all connected clients
     await manager.broadcast({
         "type": "new_request",
         "request": song_request,
         "queue": song_requests[request.session_id]
     }, request.session_id)
-    
-    # Removed voting system - songs go directly to queue
-    
+
     return {"request_id": request_id, "request": song_request}
-
-async def start_voting_session(session_id: str):
-    if session_id in voting_sessions and voting_sessions[session_id]["active"]:
-        return
-    
-    pending_requests = [r for r in song_requests[session_id] if r["status"] == "pending"]
-    if len(pending_requests) < 2:
-        return
-    
-    voting_sessions[session_id] = {
-        "active": True,
-        "started_at": datetime.now(),
-        "ends_at": datetime.now() + timedelta(seconds=60)
-    }
-    
-    await manager.broadcast({
-        "type": "voting_started",
-        "duration": 60,
-        "requests": pending_requests
-    }, session_id)
-    
-    await asyncio.sleep(60)
-    
-    pending_requests = [r for r in song_requests[session_id] if r["status"] == "pending"]
-    if pending_requests:
-        winner = max(pending_requests, key=lambda x: x["votes"])
-        winner["status"] = "queued"
-        
-        if session_id in ai_dj_agents:
-            ai_dj_agents[session_id].add_to_playlist(winner)
-        
-        for req in pending_requests:
-            if req["id"] != winner["id"]:
-                req["status"] = "rejected"
-        
-        await manager.broadcast({
-            "type": "voting_ended",
-            "winner": winner,
-            "all_requests": song_requests[session_id]
-        }, session_id)
-    
-    voting_sessions[session_id]["active"] = False
-
-@app.post("/api/requests/vote")
-async def vote_for_request(vote: Vote):
-    if vote.session_id not in party_sessions:
-        raise HTTPException(status_code=404, detail="Session not found")
-    
-    request = next((r for r in song_requests[vote.session_id] if r["id"] == vote.request_id), None)
-    if not request:
-        raise HTTPException(status_code=404, detail="Request not found")
-    
-    if request["status"] != "pending":
-        raise HTTPException(status_code=400, detail="Request is not open for voting")
-    
-    request["votes"] += 1
-    
-    await manager.broadcast({
-        "type": "vote_update",
-        "request_id": vote.request_id,
-        "votes": request["votes"]
-    }, vote.session_id)
-    
-    return {"success": True, "votes": request["votes"]}
 
 @app.post("/api/requests/tip")
 async def tip_request(tip: TipRequest):
@@ -312,8 +313,8 @@ async def tip_request(tip: TipRequest):
     requester_id = request["requester_name"]
     
     if requester_id not in user_wallets:
-        user_wallets[requester_id] = {"balance": 100.0, "transactions": []}
-    
+        user_wallets[requester_id] = {"balance": 0.0, "transactions": []}
+
     if user_wallets[requester_id]["balance"] < tip.amount:
         raise HTTPException(status_code=400, detail="Insufficient balance")
     
@@ -341,21 +342,31 @@ async def tip_request(tip: TipRequest):
     
     return {"success": True, "total_tips": request["tip_amount"]}
 
+def require_host(session_id: str, host_token: str):
+    session = party_sessions.get(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    if not host_token or host_token != session.get("host_token"):
+        raise HTTPException(status_code=403, detail="Host authorization required")
+    return session
+
 @app.post("/api/requests/{request_id}/complete")
-async def complete_request(request_id: str, session_id: str):
+async def complete_request(request_id: str, session_id: str, host_token: str = ""):
+    session = require_host(session_id, host_token)
     request = next((r for r in song_requests[session_id] if r["id"] == request_id), None)
     if not request:
         raise HTTPException(status_code=404, detail="Request not found")
-    
+
     request["status"] = "completed"
-    
-    session = party_sessions.get(session_id)
-    if session and request.get("tip_escrow", 0) > 0:
+
+    tip_amount = request.get("tip_escrow", 0)
+    if tip_amount > 0:
+        # Accrue net earnings to the session (paid out at checkout) and to the
+        # artist wallet ledger.
+        session["artist_earnings"] = session.get("artist_earnings", 0.0) + tip_amount
         artist_id = session["artist_id"]
         if artist_id not in user_wallets:
             user_wallets[artist_id] = {"balance": 0.0, "transactions": []}
-        
-        tip_amount = request["tip_escrow"]
         user_wallets[artist_id]["balance"] += tip_amount
         user_wallets[artist_id]["transactions"].append({
             "type": "tip_received",
@@ -365,7 +376,8 @@ async def complete_request(request_id: str, session_id: str):
             "timestamp": datetime.now().isoformat()
         })
         request["tip_escrow"] = 0
-    
+    save_state()
+
     await manager.broadcast({
         "type": "request_completed",
         "request_id": request_id
@@ -374,13 +386,14 @@ async def complete_request(request_id: str, session_id: str):
     return {"success": True}
 
 @app.post("/api/requests/{request_id}/skip")
-async def skip_request(request_id: str, session_id: str):
+async def skip_request(request_id: str, session_id: str, host_token: str = ""):
+    require_host(session_id, host_token)
     request = next((r for r in song_requests[session_id] if r["id"] == request_id), None)
     if not request:
         raise HTTPException(status_code=404, detail="Request not found")
-    
+
     request["status"] = "skipped"
-    
+
     if request.get("tip_escrow", 0) > 0:
         requester_id = request["requester_name"]
         if requester_id in user_wallets:
@@ -392,8 +405,9 @@ async def skip_request(request_id: str, session_id: str):
                 "request_id": request_id,
                 "timestamp": datetime.now().isoformat()
             })
-            request["tip_escrow"] = 0
-    
+        request["tip_escrow"] = 0
+    save_state()
+
     await manager.broadcast({
         "type": "request_skipped",
         "request_id": request_id
@@ -443,16 +457,13 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
 @app.get("/api/wallet/{user_id}")
 async def get_wallet(user_id: str):
     if user_id not in user_wallets:
-        user_wallets[user_id] = {"balance": 100.0, "transactions": []}
+        user_wallets[user_id] = {"balance": 0.0, "transactions": []}
     return user_wallets[user_id]
 
 @app.post("/api/checkout/process")
 async def process_checkout(checkout: PaymentCheckout):
     """Process UPI/GPay checkout with 5% app fee"""
-    if checkout.session_id not in party_sessions:
-        raise HTTPException(status_code=404, detail="Session not found")
-    
-    session = party_sessions[checkout.session_id]
+    session = require_host(checkout.session_id, checkout.host_token)
     artist_earnings = session.get("artist_earnings", 0)
     
     if artist_earnings <= 0:
@@ -492,7 +503,8 @@ async def process_checkout(checkout: PaymentCheckout):
     
     # Clear artist earnings after successful checkout
     session["artist_earnings"] = 0
-    
+    save_state()
+
     # Broadcast payment success
     await manager.broadcast({
         "type": "payment_processed",
@@ -527,8 +539,8 @@ async def enable_ai_dj(session_id: str):
         raise HTTPException(status_code=404, detail="Session not found")
     
     party_sessions[session_id]["mode"] = "ai_dj"
-    
-    pending_requests = [r for r in song_requests[session_id] if r["status"] == "pending"]
+
+    pending_requests = [r for r in song_requests[session_id] if r["status"] == "queued"]
     for req in pending_requests:
         ai_dj_agents[session_id].add_to_playlist(req)
     
@@ -563,15 +575,30 @@ async def play_next_track(session_id: str):
     
     return {"success": False, "message": "No more tracks"}
 
+def public_room(room: dict) -> dict:
+    """Room view safe to send to clients (no password hash or player tokens)."""
+    return {k: v for k, v in room.items() if k not in ("password_hash", "player1_token", "player2_token")}
+
+def player_symbol_for_token(room: dict, player_name: str, player_token: str) -> str:
+    """Return the symbol ('X'/'O') a token is authorized to play, or raise."""
+    if player_token and player_token == room.get("player1_token") and room["player1"] == player_name:
+        return "X"
+    if player_token and player_token == room.get("player2_token") and room["player2"] == player_name:
+        return "O"
+    raise HTTPException(status_code=403, detail="Not authorized to act as this player")
+
 @app.post("/api/games/create")
 async def create_game_room(room: GameRoom):
     room_code = str(uuid.uuid4())[:6].upper()
+    player1_token = secrets.token_hex(16)
     game_rooms[room_code] = {
         "code": room_code,
         "type": room.game_type,
         "player1": room.player_name,
         "player2": None,
         "password_hash": hash_password(room.password),
+        "player1_token": player1_token,
+        "player2_token": None,
         "board": [None] * 9,
         "current_turn": "X",
         "status": "waiting",
@@ -593,7 +620,8 @@ async def create_game_room(room: GameRoom):
         "restart_requests": [],  # Track restart requests from players
         "round_history": []  # Track history of each round
     }
-    return {"room_code": room_code, "room": game_rooms[room_code]}
+    save_state()
+    return {"room_code": room_code, "player_token": player1_token, "symbol": "X", "room": public_room(game_rooms[room_code])}
 
 class JoinGameRoom(BaseModel):
     player_name: str
@@ -610,10 +638,12 @@ async def join_game_room(room_code: str, join_data: JoinGameRoom):
     
     if room["player2"]:
         raise HTTPException(status_code=400, detail="Room is full")
-    
+
+    player2_token = secrets.token_hex(16)
     room["player2"] = join_data.player_name
+    room["player2_token"] = player2_token
     room["status"] = "playing"
-    
+
     # Initialize leaderboard for player2
     if join_data.player_name not in room["leaderboard"]:
         room["leaderboard"][join_data.player_name] = {
@@ -624,33 +654,37 @@ async def join_game_room(room_code: str, join_data: JoinGameRoom):
             "streak": 0,
             "max_streak": 0
         }
-    
+    save_state()
+
     await manager.broadcast({
         "type": "player_joined",
-        "room": room
+        "room": public_room(room)
     }, room_code)
-    
-    return {"success": True, "room": room}
+
+    return {"success": True, "player_token": player2_token, "symbol": "O", "room": public_room(room)}
 
 @app.get("/api/games/{room_code}")
 async def get_game_room(room_code: str):
     if room_code not in game_rooms:
         raise HTTPException(status_code=404, detail="Room not found")
-    return game_rooms[room_code]
+    return public_room(game_rooms[room_code])
 
 @app.post("/api/games/move")
 async def make_game_move(move: GameMove):
     if move.room_code not in game_rooms:
         raise HTTPException(status_code=404, detail="Room not found")
-    
+
     room = game_rooms[move.room_code]
-    
+
+    # Authorize: the token must match the player whose name is claimed
+    symbol = player_symbol_for_token(room, move.player_name, move.player_token)
+
+    if move.move < 0 or move.move > 8:
+        raise HTTPException(status_code=400, detail="Invalid move")
+
     if room["board"][move.move] is not None:
         raise HTTPException(status_code=400, detail="Invalid move")
-    
-    # Determine player symbol
-    symbol = "X" if room["player1"] == move.player_name else "O"
-    
+
     if room["current_turn"] != symbol:
         raise HTTPException(status_code=400, detail="Not your turn")
     
@@ -710,12 +744,13 @@ async def make_game_move(move: GameMove):
             "timestamp": datetime.now().isoformat()
         })
     
+    save_state()
     await manager.broadcast({
         "type": "game_move",
-        "room": room
+        "room": public_room(room)
     }, move.room_code)
-    
-    return {"success": True, "room": room}
+
+    return {"success": True, "room": public_room(room)}
 
 def check_tictactoe_winner(board):
     wins = [
@@ -730,34 +765,43 @@ def check_tictactoe_winner(board):
             return board[a]
     return None
 
+ALLOWED_EMOJIS = {"😂", "😭", "😎", "😉", "😘", "😜", "😱", "👏", "🌹", "🏆"}
+
 @app.post("/api/games/emoji")
 async def send_emoji_reaction(reaction: EmojiReaction):
     if reaction.room_code not in game_rooms:
         raise HTTPException(status_code=404, detail="Room not found")
-    
+
+    room = game_rooms[reaction.room_code]
+    # Only a real player in the room may send reactions
+    player_symbol_for_token(room, reaction.player_name, reaction.player_token)
+
+    if reaction.emoji not in ALLOWED_EMOJIS:
+        raise HTTPException(status_code=400, detail="Invalid emoji")
+
     # Broadcast emoji to all players in the room
     await manager.broadcast({
         "type": "emoji_reaction",
         "player_name": reaction.player_name,
         "emoji": reaction.emoji
     }, reaction.room_code)
-    
+
     return {"success": True}
 
 class RestartRequest(BaseModel):
     room_code: str
     player_name: str
-    
+    player_token: str = ""
+
 @app.post("/api/games/restart")
 async def restart_game(restart: RestartRequest):
     if restart.room_code not in game_rooms:
         raise HTTPException(status_code=404, detail="Room not found")
-    
+
     room = game_rooms[restart.room_code]
-    
-    # Check if player is in the room
-    if restart.player_name not in [room["player1"], room["player2"]]:
-        raise HTTPException(status_code=400, detail="Player not in room")
+
+    # Authorize the requesting player by token
+    player_symbol_for_token(room, restart.player_name, restart.player_token)
     
     # Add player's restart request if not already present
     if restart.player_name not in room["restart_requests"]:
@@ -783,15 +827,16 @@ async def restart_game(restart: RestartRequest):
         
         # Clear restart requests
         room["restart_requests"] = []
-        
+        save_state()
+
         # Broadcast game restart
         await manager.broadcast({
             "type": "game_restarted",
-            "room": room,
+            "room": public_room(room),
             "starting_player": room["starting_player"]
         }, restart.room_code)
-        
-        return {"success": True, "restarted": True, "room": room}
+
+        return {"success": True, "restarted": True, "room": public_room(room)}
     else:
         # Notify that restart is pending
         await manager.broadcast({
@@ -1148,4 +1193,5 @@ app.mount("/", StaticFilesNoCache(directory=str(FRONTEND_DIR), html=True), name=
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8080)
+    port = int(os.getenv("PORT", "5000"))
+    uvicorn.run(app, host="0.0.0.0", port=port)

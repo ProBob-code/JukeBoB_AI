@@ -6,7 +6,8 @@ Password-protected admin panel for managing WTPT events and Games
 import hashlib
 import secrets
 import json
-from datetime import datetime
+import os
+from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 from pathlib import Path
 import uuid
@@ -18,11 +19,17 @@ EVENTS_FILE = DATA_DIR / "admin_events.json"
 GAMES_FILE = DATA_DIR / "admin_games.json"
 SESSIONS_FILE = DATA_DIR / "admin_sessions.json"
 
-# Default admin credentials (password hashed with SHA256)
-# Default: admin / jukebob2026
+# Admin credentials come from the environment. ADMIN_USERNAME/ADMIN_PASSWORD
+# override the development default (admin / jukebob2026) and should always be
+# set in production.
+_ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
+_ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "jukebob2026")
 ADMIN_CREDENTIALS = {
-    "admin": hashlib.sha256("jukebob2026".encode()).hexdigest()
+    _ADMIN_USERNAME: hashlib.sha256(_ADMIN_PASSWORD.encode()).hexdigest()
 }
+
+# Sessions expire after this many hours of age.
+SESSION_TTL_HOURS = int(os.getenv("ADMIN_SESSION_TTL_HOURS", "24"))
 
 # Active sessions
 active_sessions: Dict[str, dict] = {}
@@ -62,9 +69,20 @@ def verify_admin(username: str, password: str) -> Optional[str]:
 
 
 def verify_session(token: str) -> bool:
-    """Verify if session token is valid"""
+    """Verify if session token is valid and not expired"""
     load_sessions()
-    return token in active_sessions
+    session = active_sessions.get(token)
+    if not session:
+        return False
+    try:
+        created = datetime.fromisoformat(session["created_at"])
+        if datetime.now() - created > timedelta(hours=SESSION_TTL_HOURS):
+            del active_sessions[token]
+            save_sessions()
+            return False
+    except (KeyError, ValueError):
+        return False
+    return True
 
 
 def logout(token: str):

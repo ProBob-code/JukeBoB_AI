@@ -1,10 +1,21 @@
 // Global state
 let currentSession = null;
 let currentUser = null;
+let hostToken = null;       // auth token for host-only jukebox actions
 let ws = null;
 let currentGame = null;
 let deckA = null;
 let deckB = null;
+
+// Escape user-supplied text before inserting into innerHTML (XSS protection).
+function escapeHtml(str) {
+    return String(str == null ? '' : str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
 
 // ============== NAVIGATION ==============
 
@@ -75,6 +86,7 @@ async function createJukebox(event) {
 
         const data = await response.json();
         currentSession = data.session_id;
+        hostToken = data.host_token;
         currentUser = { name: hostName, role: 'host' };
 
         document.getElementById('host-jukebox-name').textContent = partyName;
@@ -240,9 +252,10 @@ async function submitSongRequest(event) {
 
 async function completeRequest(requestId) {
     try {
-        await fetch(`/api/requests/${requestId}/complete?session_id=${currentSession}`, {
+        const res = await fetch(`/api/requests/${requestId}/complete?session_id=${currentSession}&host_token=${encodeURIComponent(hostToken || '')}`, {
             method: 'POST'
         });
+        if (!res.ok) throw new Error('Not authorized or request not found');
         refreshJukebox();
     } catch (error) {
         alert('Error completing request: ' + error.message);
@@ -251,9 +264,10 @@ async function completeRequest(requestId) {
 
 async function skipRequest(requestId) {
     try {
-        await fetch(`/api/requests/${requestId}/skip?session_id=${currentSession}`, {
+        const res = await fetch(`/api/requests/${requestId}/skip?session_id=${currentSession}&host_token=${encodeURIComponent(hostToken || '')}`, {
             method: 'POST'
         });
+        if (!res.ok) throw new Error('Not authorized or request not found');
         refreshJukebox();
     } catch (error) {
         alert('Error skipping request: ' + error.message);
@@ -271,7 +285,10 @@ async function loadHostRequests() {
             .slice(0, 10);
         const played = requests.filter(r => r.status === 'completed').slice(0, 10);
 
-        const totalTips = requests.reduce((sum, r) => sum + r.tip_amount, 0);
+        // Earnings = tips from songs that actually played (matches backend payout).
+        const totalTips = requests
+            .filter(r => r.status === 'completed')
+            .reduce((sum, r) => sum + r.tip_amount, 0);
 
         document.getElementById('queue-count').textContent = queued.length;
         document.getElementById('played-count').textContent = played.length;
@@ -330,8 +347,8 @@ function renderQueue(containerId, requests, isHost) {
             card.innerHTML = `
                 <div class="vip-indicator">👑</div>
                 <div class="request-info">
-                    <h4>#${index + 1} ${req.song_name}</h4>
-                    <p>${req.artist} • ${req.requester_name}</p>
+                    <h4>#${index + 1} ${escapeHtml(req.song_name)}</h4>
+                    <p>${escapeHtml(req.artist)} • ${escapeHtml(req.requester_name)}</p>
                     <p class="tip-amount vip-tip">💰 VIP Tip: ₹${req.tip_amount.toFixed(2)}</p>
                 </div>
                 ${isHost ? `
@@ -360,8 +377,8 @@ function renderQueue(containerId, requests, isHost) {
             card.className = 'request-card regular-card';
             card.innerHTML = `
                 <div class="request-info">
-                    <h4>#${vipSongs.length + index + 1} ${req.song_name}</h4>
-                    <p>${req.artist} • ${req.requester_name}</p>
+                    <h4>#${vipSongs.length + index + 1} ${escapeHtml(req.song_name)}</h4>
+                    <p>${escapeHtml(req.artist)} • ${escapeHtml(req.requester_name)}</p>
                     <p class="tip-amount">💰 Tip: ₹${req.tip_amount.toFixed(2)}</p>
                 </div>
                 ${isHost ? `
@@ -390,8 +407,8 @@ function renderPlayed(containerId, requests) {
         card.className = 'request-card';
         card.innerHTML = `
             <div class="request-info">
-                <h4>${req.song_name}</h4>
-                <p>${req.artist} • ${req.requester_name}</p>
+                <h4>${escapeHtml(req.song_name)}</h4>
+                <p>${escapeHtml(req.artist)} • ${escapeHtml(req.requester_name)}</p>
             </div>
         `;
         container.appendChild(card);
@@ -461,9 +478,10 @@ async function processPayment(method) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                session_id: currentSession.session_id,
+                session_id: currentSession,
                 payment_method: method,
-                upi_id: method === 'upi' ? 'artist@upi' : null
+                upi_id: method === 'upi' ? 'artist@upi' : null,
+                host_token: hostToken || ''
             })
         });
 
@@ -541,6 +559,7 @@ async function resumeJukebox(event) {
 
         const data = await response.json();
         currentSession = sessionCode;
+        hostToken = data.host_token;
         currentUser = data.user_role;
 
         if (data.user_role.role === 'host') {
@@ -595,10 +614,12 @@ async function createGameRoom(event) {
             currentTurn: 'X',
             yourSymbol: 'X',
             playerName: hostName,
+            playerToken: data.player_token,
             scores: data.room.scores || { 'X': 0, 'O': 0 },
             games_played: data.room.games_played || 0,
             leaderboard: data.room.leaderboard || {}
         };
+        localStorage.setItem(`gameToken_${data.room_code}`, data.player_token);
 
         // Connect WebSocket for real-time updates
         connectGameWebSocket(data.room_code);
@@ -646,10 +667,12 @@ async function joinGameRoom(event) {
             currentTurn: data.room.current_turn,
             yourSymbol: 'O',
             playerName: playerName,
+            playerToken: data.player_token,
             scores: data.room.scores || { 'X': 0, 'O': 0 },
             games_played: data.room.games_played || 0,
             leaderboard: data.room.leaderboard || {}
         };
+        localStorage.setItem(`gameToken_${gameCode}`, data.player_token);
 
         // Connect WebSocket for real-time updates
         connectGameWebSocket(gameCode);
@@ -692,7 +715,11 @@ async function resumeGame(event) {
             board: room.board,
             currentTurn: room.current_turn,
             yourSymbol: yourSymbol,
-            playerName: playerName
+            playerName: playerName,
+            playerToken: localStorage.getItem(`gameToken_${gameCode}`) || '',
+            scores: room.scores || { 'X': 0, 'O': 0 },
+            games_played: room.games_played || 0,
+            leaderboard: room.leaderboard || {}
         };
 
         connectGameWebSocket(gameCode);
@@ -758,7 +785,8 @@ async function makeMove(index) {
             body: JSON.stringify({
                 room_code: currentGame.code,
                 player_name: playerName,
-                move: index
+                move: index,
+                player_token: currentGame.playerToken || localStorage.getItem(`gameToken_${currentGame.code}`) || ''
             })
         });
 
@@ -830,7 +858,8 @@ async function sendEmoji(emoji) {
             body: JSON.stringify({
                 room_code: currentGame.code,
                 player_name: playerName,
-                emoji: emoji
+                emoji: emoji,
+                player_token: currentGame.playerToken || localStorage.getItem(`gameToken_${currentGame.code}`) || ''
             })
         });
 
@@ -855,8 +884,8 @@ function showFloatingEmoji(playerName, emoji) {
     emojiElement.style.top = `${randomY}%`;
 
     emojiElement.innerHTML = `
-        <span>${emoji}</span>
-        <span class="emoji-sender">${playerName}</span>
+        <span>${escapeHtml(emoji)}</span>
+        <span class="emoji-sender">${escapeHtml(playerName)}</span>
     `;
 
     container.appendChild(emojiElement);
@@ -975,7 +1004,8 @@ async function requestRestart() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 room_code: currentGame.code,
-                player_name: playerName
+                player_name: playerName,
+                player_token: currentGame.playerToken || localStorage.getItem(`gameToken_${currentGame.code}`) || ''
             })
         });
 
@@ -1407,7 +1437,7 @@ function renderPlaylist() {
     container.innerHTML = playlist.map((track, index) => `
         <div class="playlist-item" data-index="${index}">
             <span class="track-number">${index + 1}</span>
-            <span class="track-title">${track.name}</span>
+            <span class="track-title">${escapeHtml(track.name)}</span>
             <button class="remove-btn" onclick="removeFromPlaylist(${index})">✕</button>
         </div>
     `).join('');
@@ -1727,7 +1757,7 @@ function renderWTPTEvents() {
         'sold_out': { text: 'Sold Out', class: 'sold-out' }
     };
 
-    grid.innerHTML = wtptEvents.map(event => {
+    grid.innerHTML = wtptEvents.map((event, idx) => {
         // Map admin fields to legacy display format
         const imageUrl = event.image_url || event.image || '';
         const bookingUrl = event.link || event.booking_url || '#';
@@ -1736,47 +1766,45 @@ function renderWTPTEvents() {
             ? new Date(event.event_datetime).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })
             : (event.date || 'TBA');
         const category = event.category || 'concert';
+        const icon = categoryIcons[category] || '🎉';
 
         return `
         <div class="event-card">
             <div class="event-image">
-                ${imageUrl ? `<img src="${imageUrl}" alt="${event.title}" onerror="this.style.display='none'; this.parentElement.innerHTML='${categoryIcons[category] || '🎉'}<span class=\\'platform-badge admin\\'>JukeBob</span>';">` : categoryIcons[category] || '🎉'}
+                ${imageUrl ? `<img src="${encodeURI(imageUrl)}" alt="${escapeHtml(event.title)}" onerror="this.style.display='none';">` : icon}
                 <span class="platform-badge admin">JukeBob</span>
             </div>
             <div class="event-content">
                 <div class="event-header">
-                    <span class="event-category">${categoryNames[category] || 'Event'}</span>
-                    <span class="availability-badge ${tag.class}">${tag.text}</span>
+                    <span class="event-category">${escapeHtml(categoryNames[category] || 'Event')}</span>
+                    <span class="availability-badge ${tag.class}">${escapeHtml(tag.text)}</span>
                 </div>
-                <h4 class="event-title">${event.title}</h4>
-                <p class="event-venue">📍 ${event.venue}</p>
-                <p class="event-date">📅 ${dateStr}</p>
-                <p class="event-price">💰 ${event.price}</p>
+                <h4 class="event-title">${escapeHtml(event.title)}</h4>
+                <p class="event-venue">📍 ${escapeHtml(event.venue)}</p>
+                <p class="event-date">📅 ${escapeHtml(dateStr)}</p>
+                <p class="event-price">💰 ${escapeHtml(event.price)}</p>
                 <div class="event-actions">
-                    <button class="book-btn ${event.tag === 'sold_out' ? 'sold-out-btn' : ''}" 
-                            onclick="bookEvent('${bookingUrl}')" 
+                    <button class="book-btn ${event.tag === 'sold_out' ? 'sold-out-btn' : ''}"
+                            onclick="bookEvent('${encodeURI(bookingUrl)}')"
                             ${event.tag === 'sold_out' ? 'disabled' : ''}>
                         ${event.tag === 'sold_out' ? '🚫 Sold Out' : 'Book Now ↗'}
                     </button>
-                    <button class="track-btn" onclick="openBookingModal('${escapeHtml(JSON.stringify(event))}')">📝 Track</button>
+                    <button class="track-btn" onclick="openBookingModal(${idx})">📝 Track</button>
                 </div>
             </div>
         </div>
     `}).join('');
 }
 
-
-function escapeHtml(str) {
-    return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-}
-
 function bookEvent(url) {
-    window.open(url, '_blank');
+    if (!/^https?:\/\//i.test(url)) { return; }  // only allow http(s) links
+    window.open(url, '_blank', 'noopener');
     showDJToast('Redirecting to booking platform...', 'info');
 }
 
-function openBookingModal(eventJson) {
-    const event = JSON.parse(eventJson.replace(/&quot;/g, '"'));
+function openBookingModal(index) {
+    const event = wtptEvents[index];
+    if (!event) return;
 
     // Populate hidden fields
     document.getElementById('wtpt-event-id').value = event.id;
@@ -1787,10 +1815,10 @@ function openBookingModal(eventJson) {
 
     // Show event info
     document.getElementById('booking-event-info').innerHTML = `
-        <p><strong>${event.title}</strong></p>
-        <p>📍 ${event.venue}</p>
-        <p>📅 ${event.date}</p>
-        <p>Platform: ${event.platform_name || event.platform}</p>
+        <p><strong>${escapeHtml(event.title)}</strong></p>
+        <p>📍 ${escapeHtml(event.venue)}</p>
+        <p>📅 ${escapeHtml(event.date || event.event_datetime || '')}</p>
+        <p>Platform: ${escapeHtml(event.platform_name || event.platform || 'JukeBob')}</p>
     `;
 
     document.getElementById('wtpt-booking-modal').style.display = 'flex';
@@ -1889,13 +1917,13 @@ function renderWTPTBookings() {
     list.innerHTML = wtptBookings.map(booking => `
         <div class="booking-card">
             <div class="booking-info">
-                <h4>${booking.event_title}</h4>
-                <p>📍 ${booking.venue} | 📅 ${booking.event_date}</p>
-                <p>🎫 ${booking.tickets} ticket(s) | 💰 ₹${booking.total_amount.toLocaleString()}</p>
-                <p>Booking ID: ${booking.id} | Platform: ${booking.platform}</p>
+                <h4>${escapeHtml(booking.event_title)}</h4>
+                <p>📍 ${escapeHtml(booking.venue)} | 📅 ${escapeHtml(booking.event_date)}</p>
+                <p>🎫 ${escapeHtml(String(booking.tickets))} ticket(s) | 💰 ₹${Number(booking.total_amount || 0).toLocaleString()}</p>
+                <p>Booking ID: ${escapeHtml(booking.id)} | Platform: ${escapeHtml(booking.platform)}</p>
             </div>
             <div class="booking-actions">
-                <button class="invoice-btn" onclick="downloadInvoice('${booking.id}')">📄 Invoice</button>
+                <button class="invoice-btn" onclick="downloadInvoice('${encodeURIComponent(booking.id)}')">📄 Invoice</button>
             </div>
         </div>
     `).join('');
@@ -2077,10 +2105,10 @@ function renderTrackers() {
     }
 
     grid.innerHTML = currentTrackers.map(tracker => `
-        <div class="tracker-item-card" data-tracker-id="${tracker.id}">
+        <div class="tracker-item-card" data-tracker-id="${escapeHtml(tracker.id)}">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h3>${tracker.name}</h3>
-                <button onclick="deleteTrackerById('${tracker.id}')" 
+                <h3>${escapeHtml(tracker.name)}</h3>
+                <button onclick="deleteTrackerById('${escapeHtml(tracker.id)}')"
                         style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 1.2rem;"
                         title="Delete Tracker">🗑️</button>
             </div>
@@ -2092,10 +2120,10 @@ function renderTrackers() {
             </p>
             <div class="tracker-items-list">
                 ${tracker.items.map(item => `
-                    <div class="tracker-check-item ${item.completed ? 'completed' : ''}" 
-                         onclick="toggleTrackerItem('${tracker.id}', '${item.id}', ${!item.completed})">
+                    <div class="tracker-check-item ${item.completed ? 'completed' : ''}"
+                         onclick="toggleTrackerItem('${escapeHtml(tracker.id)}', '${escapeHtml(item.id)}', ${!item.completed})">
                         <div class="tracker-checkbox"></div>
-                        <span class="tracker-item-name">${item.name}</span>
+                        <span class="tracker-item-name">${escapeHtml(item.name)}</span>
                     </div>
                 `).join('')}
             </div>

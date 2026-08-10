@@ -45,8 +45,33 @@ CITIES = {
     "goa": {"bms": "goa", "district": "goa", "spotify": "1271157-Goa-IN"},
 }
 
-# Bookings storage
+# Bookings storage (persisted to disk so records survive restarts)
+from pathlib import Path as _Path
+_DATA_DIR = _Path(__file__).parent / "data"
+_DATA_DIR.mkdir(exist_ok=True)
+_BOOKINGS_FILE = _DATA_DIR / "bookings.json"
+
 bookings = {}
+
+
+def _load_bookings():
+    if _BOOKINGS_FILE.exists():
+        try:
+            with open(_BOOKINGS_FILE) as f:
+                bookings.update(json.load(f))
+        except Exception:
+            pass
+
+
+def _save_bookings():
+    try:
+        with open(_BOOKINGS_FILE, "w") as f:
+            json.dump(bookings, f)
+    except Exception as e:
+        print(f"[wtpt] booking save failed: {e}")
+
+
+_load_bookings()
 
 # JukeBob Xclusive events (future scope)
 jukebob_exclusive = []
@@ -1007,6 +1032,7 @@ def create_booking(booking_data: dict) -> dict:
     }
     
     bookings[booking_id] = booking
+    _save_bookings()
     return booking
 
 
@@ -1024,15 +1050,32 @@ def get_booking(booking_id: str) -> Optional[dict]:
 
 def generate_invoice_html(booking_id: str) -> Optional[str]:
     """Generate HTML invoice for a booking"""
+    import html as _html
+
     booking = bookings.get(booking_id)
     if not booking:
         return None
-    
+
+    def esc(value, default="N/A"):
+        if value is None or value == "":
+            value = default
+        return _html.escape(str(value))
+
+    def title(value, default="N/A"):
+        raw = value if value else default
+        return _html.escape(str(raw).title())
+
+    try:
+        total_amount = float(booking.get("total_amount", 0) or 0)
+    except (TypeError, ValueError):
+        total_amount = 0.0
+
+    booking_id_safe = esc(booking_id)
     html = f"""
     <!DOCTYPE html>
     <html>
     <head>
-        <title>JukeBoB Invoice - {booking_id}</title>
+        <title>JukeBoB Invoice - {booking_id_safe}</title>
         <style>
             body {{ font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }}
             .header {{ text-align: center; border-bottom: 2px solid #f5d547; padding-bottom: 20px; margin-bottom: 20px; }}
@@ -1054,39 +1097,39 @@ def generate_invoice_html(booking_id: str) -> Optional[str]:
         <div class="header">
             <div class="logo">Juke<span>BoB</span></div>
             <p>Where's the Party Tonight</p>
-            <p class="invoice-id">Invoice: {booking_id}</p>
+            <p class="invoice-id">Invoice: {booking_id_safe}</p>
         </div>
-        
+
         <div class="section">
             <h3>Event Details</h3>
-            <div class="row"><span class="label">Event</span><span class="value">{booking.get('event_title', 'N/A')}</span></div>
-            <div class="row"><span class="label">Venue</span><span class="value">{booking.get('venue', 'N/A')}</span></div>
-            <div class="row"><span class="label">Date</span><span class="value">{booking.get('event_date', 'N/A')}</span></div>
-            <div class="row"><span class="label">Platform</span><span class="value">{booking.get('platform', 'N/A').title()}</span></div>
-            <div class="row"><span class="label">Platform Booking ID</span><span class="value">{booking.get('platform_booking_id', 'N/A')}</span></div>
+            <div class="row"><span class="label">Event</span><span class="value">{esc(booking.get('event_title'))}</span></div>
+            <div class="row"><span class="label">Venue</span><span class="value">{esc(booking.get('venue'))}</span></div>
+            <div class="row"><span class="label">Date</span><span class="value">{esc(booking.get('event_date'))}</span></div>
+            <div class="row"><span class="label">Platform</span><span class="value">{title(booking.get('platform'))}</span></div>
+            <div class="row"><span class="label">Platform Booking ID</span><span class="value">{esc(booking.get('platform_booking_id'))}</span></div>
         </div>
-        
+
         <div class="section">
             <h3>Customer Details</h3>
-            <div class="row"><span class="label">Name</span><span class="value">{booking.get('user_name', 'N/A')}</span></div>
-            <div class="row"><span class="label">Email</span><span class="value">{booking.get('user_email', 'N/A')}</span></div>
-            <div class="row"><span class="label">Phone</span><span class="value">{booking.get('user_phone', 'N/A')}</span></div>
+            <div class="row"><span class="label">Name</span><span class="value">{esc(booking.get('user_name'))}</span></div>
+            <div class="row"><span class="label">Email</span><span class="value">{esc(booking.get('user_email'))}</span></div>
+            <div class="row"><span class="label">Phone</span><span class="value">{esc(booking.get('user_phone'))}</span></div>
         </div>
-        
+
         <div class="section">
             <h3>Booking Summary</h3>
-            <div class="row"><span class="label">Number of Tickets</span><span class="value">{booking.get('tickets', 1)}</span></div>
-            <div class="row"><span class="label">Booking Date</span><span class="value">{booking.get('booking_date', 'N/A')[:10]}</span></div>
-            <div class="row"><span class="label">Status</span><span class="value" style="color: green;">✓ {booking.get('status', 'confirmed').title()}</span></div>
+            <div class="row"><span class="label">Number of Tickets</span><span class="value">{esc(booking.get('tickets', 1))}</span></div>
+            <div class="row"><span class="label">Booking Date</span><span class="value">{esc(str(booking.get('booking_date', 'N/A'))[:10])}</span></div>
+            <div class="row"><span class="label">Status</span><span class="value" style="color: green;">✓ {title(booking.get('status', 'confirmed'))}</span></div>
         </div>
-        
+
         <div class="total">
-            Total Amount: ₹{booking.get('total_amount', 0):,.2f}
+            Total Amount: ₹{total_amount:,.2f}
         </div>
-        
+
         <div class="note">
-            <strong>Note:</strong> This invoice is for record-keeping purposes. The actual ticket was purchased through {booking.get('platform', 'the original platform').title()}. 
-            Please carry your original booking confirmation from {booking.get('platform', 'the platform').title()} to the event.
+            <strong>Note:</strong> This invoice is for record-keeping purposes. The actual ticket was purchased through {title(booking.get('platform'), 'the original platform')}.
+            Please carry your original booking confirmation from {title(booking.get('platform'), 'the platform')} to the event.
             <br><br>
             <strong>JukeBoB Commission:</strong> ₹0.00 (No commission charged)
         </div>

@@ -62,8 +62,13 @@ python -m venv .venv
 source .venv/bin/activate
 
 # 4. Install dependencies
-pip install fastapi uvicorn python-dotenv qrcode pillow pydantic python-multipart stripe supabase websockets beautifulsoup4
+pip install -r requirements.txt
 ```
+
+### Configuration
+
+Copy `.env.example` to `.env` and adjust as needed. In particular, set a strong
+`ADMIN_PASSWORD` and restrict `ALLOWED_ORIGINS` before deploying.
 
 ### Running the Application
 
@@ -183,9 +188,8 @@ Professional-style dual turntable mixing interface.
 |--------|----------|-------------|
 | `POST` | `/api/requests/submit` | Submit song request with tip |
 | `GET` | `/api/requests/{session_id}` | Get queue (VIP + Regular) |
-| `POST` | `/api/requests/{id}/complete` | Mark song as played |
-| `POST` | `/api/requests/{id}/skip` | Skip song (refund tip) |
-| `POST` | `/api/requests/vote` | Vote for a song |
+| `POST` | `/api/requests/{id}/complete` | Mark song as played (host token required) |
+| `POST` | `/api/requests/{id}/skip` | Skip song / refund tip (host token required) |
 | `POST` | `/api/requests/tip` | Add tip to existing request |
 
 ### Games
@@ -285,10 +289,12 @@ JukeBoB features distinct visual themes for each section:
 ## 🔐 Security
 
 - ✅ SHA-256 password hashing
-- ✅ Session-based authentication
-- ✅ CORS protection configured
-- ✅ No plain-text password storage
-- ✅ WebSocket connection validation
+- ✅ Token-based authorization for host-only actions (complete/skip/checkout)
+- ✅ Per-player tokens prevent game-move impersonation
+- ✅ Server-side output escaping + client-side `escapeHtml` on all rendered user input (XSS)
+- ✅ Configurable CORS origins (no wildcard-with-credentials)
+- ✅ Admin credentials read from environment, sessions expire after a TTL
+- ✅ No plain-text password storage; password hashes never leave the server
 
 ---
 
@@ -358,7 +364,7 @@ docker run -p 5000:5000 jukebob-ai
 
 | Limitation | Workaround |
 |------------|------------|
-| In-memory storage | Data resets on server restart |
+| JSON-file persistence | Survives restarts; migrate to Supabase/Postgres for scale |
 | Simulated payments | Integrate real payment gateway for production |
 | Basic AI crossfade | No beat matching (yet) |
 | Single instance | No horizontal scaling support |
